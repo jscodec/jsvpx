@@ -35,14 +35,14 @@ The main api is written to closely resemble the C style api of the original libv
 
 #### jsvpx api
 This is the simplest most, most user friendly api. It's usage is more like the traditional javascript api.
-`
+```
 var decoder = new jsvpx();
 var rawFrame = decoder.decode(compressedFrame);
 
 if(rawFrame){
     //do something with it
 }
-`
+```
 
 
 
