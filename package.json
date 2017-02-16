@@ -1,0 +1,32 @@
+{
+    "name": "jsivf",
+    "version": "0.0.0",
+    "keywords": [
+        "webm",
+        "vp8"
+    ],
+    "scripts": {
+    "build": "webpack",
+    "build-benchmark": "USE_BENCHMARK=true webpack",
+     "test": "mocha test/test.js --timeout 20000",
+     "compare-hash" : "mocha test/compare-hashes.js"
+    },
+    "author": "Brian Parra",
+    "contributors": [
+    ],
+    "devDependencies": {
+    "browserify": "^13.0.1",
+    "browserify-shim": "^3.5.0",
+    "uglify-js": "2.7.0",
+    "babel-cli": "6.10.1",
+    "babel-preset-es2015": "6.9.0",
+    "envify": "3.4.1",
+    "mocha" : "^3.1.2",
+    "js-md5" : "^0.4.1",
+    "webpack": "^1.13.3",
+    "webpack-closure-compiler": "^2.1.3",
+    "gentelella" : "^1.3.0",
+    "jsivf" : "^0.0.1"
+  },
+    "main" : "src/vp8.js"
+}

@@ -1,0 +1,3 @@
+[submodule "vp8-test-vectors"]
+	path = vp8-test-vectors
+	url = https://github.com/webmproject/vp8-test-vectors.git
