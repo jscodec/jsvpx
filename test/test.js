@@ -201,6 +201,9 @@ describe('Running Test Vector Unit Tests', function () {
 
     var vectorPath = './vp8-test-vectors/';
     var testFiles = fs.readdirSync(vectorPath);
+    if (!testFiles.length) {
+        throw new Error('No test vectors; may need to run "git submodule update --init"');
+    }
 
     var md5File;
 
