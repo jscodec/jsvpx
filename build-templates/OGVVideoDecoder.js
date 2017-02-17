@@ -11,7 +11,7 @@ if (typeof performance === 'undefined' || typeof performance.now === 'undefined'
     getTimestamp = performance.now.bind(performance);
 }
 
-class OGVVideoDecoder {
+class OGVDecoderVideoVP8 {
 
     constructor(options) {
         this.cpuTime = 0;
@@ -105,10 +105,10 @@ class OGVVideoDecoder {
 
 
 
-if(window){
-    window.OGVVideoDecoder = OGVVideoDecoder;
-}else if(self){
-    self.OGVVideoDecoder = OGVVideoDecoder;
+if(typeof window !== 'undefined'){
+    window.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
+}else if(typeof self !== 'undefined'){
+    self.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
 }
 
-module.exports = OGVVideoDecoder;
+module.exports = OGVDecoderVideoVP8;
