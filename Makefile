@@ -1,9 +1,6 @@
-build-release:
-	rm -rf build 
-	mkdir build  
-	VERSION=`node -pe "require('./package.json').version"` && \
-	browserify src/main.js -t [ envify purge --MODE global ] | \
-	tee  build/flare-vpx-“$$VERSION".js 
+examples : examples/ogv-simple/index.html
+	rm -rf ogv-simple/dist 
+	cp -R node_modules/ogv/dist examples/ogv-simple 
+	cp builds/ogv-decoder-video-vp8.js examples/ogv-simple/dist
 	
-
 	

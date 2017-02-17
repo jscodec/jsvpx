@@ -8,8 +8,7 @@
     "scripts": {
     "build": "webpack",
     "build-benchmark": "USE_BENCHMARK=true webpack",
-     "test": "mocha test/test.js --timeout 20000",
-     "compare-hash" : "mocha test/compare-hashes.js"
+     "test": "mocha test/test.js --timeout 20000"
     },
     "author": "Brian Parra",
     "contributors": [
@@ -26,7 +25,8 @@
     "webpack": "^1.13.3",
     "webpack-closure-compiler": "^2.1.3",
     "gentelella" : "^1.3.0",
-    "jsivf" : "^0.0.1"
+    "jsivf" : "^0.0.1",
+     "ogv" : "^1.3.0"
   },
     "main" : "src/vp8.js"
 }
