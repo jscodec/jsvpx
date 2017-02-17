@@ -1,28 +1,43 @@
-#jsvpx
+# jsvpx
 
 A Javascript libvpx implementation.
 
 ## Project Status
 Vp8 is now working! Still in experimental stages. Output hashes finally match the vp8 test vectors.
-Now working on figuring out a few speed issues. The project was originally modeled after the dixie branch, but
-now being modeled after the main libvpx branch.
+Now working on figuring out a few speed issues. 
+
+Works best in Safari.
+
+Based of code from John Koleszar's dixie libvpx branch : https://github.com/webmproject/libvpx/tree/dixie/vpx ,
+and Dominik Homberger's : https://github.com/dominikhlbg/vp8-webm-javascript-decoder.
+
+### Current TODO
+* Figure out whats causing the slow parts, (Probably splitmode prediction)
+* Start testing out some webworkers
+* Lots of code cleaning to do
 
 ### Future Planned Work
-Frame corruption/interpolation for missing frames , Vp9, finish filling this out...
+* Frame corruption/interpolation for missing frames
+* Vp9
+* Finish filling this out...
 
 ## Usage
 
 ### Installation
 Make sure to have npm, and git installed. Clone repository, then use:
 
-`
+For npm modules:
+```
 npm install
-`
-To pull all npm modules, and
+```
 
-` git submodule init `
+To pull all git modules:
+``` git submodule update --init ```
 
-To pull the vp8 test vectors
+To Build simply use:
+``` npm run-script build ```
+
+
 
 ### Validation
 To validate, use 
@@ -47,3 +62,5 @@ if(rawFrame){
 
 
 #### ogv.js
+
+* To try with ogv, simply copy ogv-decoder-video-vp8 out of the builds directory and paste it over the generated one.

@@ -9,7 +9,7 @@ var OGVVideoDecoder = {
     ],
     output: {
         path: path.join(__dirname, 'builds'),
-        filename: 'flare-vpx.js'
+        filename: 'ogv-decoder-video-vp8.js'
     },
 
     plugins: [

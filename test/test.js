@@ -214,7 +214,6 @@ describe('Running Test Vector Unit Tests', function () {
         var ivfDataFile = file.slice(0, -4);
         //md5File = ivfDataFile + ".md5";
 
-        console.warn(file);
         testWrapper(file);
         //describe('Testing vector Vector : ' + ivfDataFile, function () {
 

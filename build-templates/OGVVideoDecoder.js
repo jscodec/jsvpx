@@ -103,5 +103,12 @@ class OGVVideoDecoder {
     }
 }
 
-self.FlareVpx = OGVVideoDecoder;
+
+
+if(window){
+    window.OGVVideoDecoder = OGVVideoDecoder;
+}else if(self){
+    self.OGVVideoDecoder = OGVVideoDecoder;
+}
+
 module.exports = OGVVideoDecoder;
