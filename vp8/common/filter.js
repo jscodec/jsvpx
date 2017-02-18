@@ -44,12 +44,6 @@ vp8_sub_pel_filters[7].shape = 2;
 
 var VP8_FILTER_SHIFT = 7;
 
-var min = Math.min;
-var max = Math.max;
-function CLAMP_255(x) {
-    return  min(max(x, 0), 255);
-}
-
 function filter_block2d_first_pass(output,
         output_off, output_width, src, src_ptr,
         reference_stride, cols, output_height, vp8_filter) {
@@ -258,6 +252,52 @@ function filter_block2d_second_pass_shape_1(output,
 
 }
 
+function filter_block2d_second_pass_shape_2(output,
+        output_off,
+        output_stride,
+        reference,
+        reference_off,
+        reference_stride,
+        cols,
+        rows,
+        filter
+        ) {
+    var r = 0, c = 0, Temp = 0;
+
+    var filter1 = filter[1] | 0;
+    var filter2 = filter[2] | 0;
+    var filter3 = filter[3] | 0;
+    var filter4 = filter[4] | 0;
+
+    var twoRef = reference_stride << 1;
+    var threeRef = 3 * reference_stride;
+
+    for (r = 0; r < rows; r++) {
+        for (c = 0; c < cols; c++) {
+            Temp = 
+                    (reference[reference_off - reference_stride] * filter1) +
+                    (reference[reference_off] * filter2) +
+                    (reference[reference_off + reference_stride] * filter3) +
+                    (reference[reference_off + twoRef] * filter4) +
+                    64;
+            Temp >>= 7;
+            
+            if (Temp < 0) {
+                Temp = 0;
+            } else if (Temp > 255) {
+                Temp = 255;
+            }
+      
+            output[output_off + c] = Temp;
+            
+            reference_off++;
+        }
+
+        reference_off += reference_stride - cols;
+        output_off += output_stride;
+    }
+}
+
 //likely filter_block2d
 var temp = new Uint8Array(336);
 
@@ -272,6 +312,10 @@ function filter_block2d(output, output_off,
         filter_block2d_first_pass_shape_1(temp, 0, 16,
                 reference, reference_off - 2 * reference_stride, reference_stride,
                 cols, rows + 5, filters[mx]);
+    } else if(filters[mx].shape === 2) {
+        filter_block2d_first_pass_shape_2(temp, 0, 16,
+                reference, reference_off - 2 * reference_stride, reference_stride,
+                cols, rows + 5, filters[mx]);
     } else {
         filter_block2d_first_pass(temp, 0, 16,
                 reference, reference_off - 2 * reference_stride, reference_stride,
@@ -280,10 +324,13 @@ function filter_block2d(output, output_off,
     
     if (filters[my].shape === 1) {
         filter_block2d_second_pass_shape_1(output, output_off, output_stride,
-            temp, 32, 16, cols, rows, filters[my]); 
-    }else{
-       filter_block2d_second_pass(output, output_off, output_stride,
-            temp, 32, 16, cols, rows, filters[my]); 
+                temp, 32, 16, cols, rows, filters[my]);
+    } else if (filters[my].shape === 1) {
+        filter_block2d_second_pass_shape_2(output, output_off, output_stride,
+                temp, 32, 16, cols, rows, filters[my]);
+    } else {
+        filter_block2d_second_pass(output, output_off, output_stride,
+                temp, 32, 16, cols, rows, filters[my]);
     }
 
     
@@ -307,12 +354,10 @@ function filter_block(return_off,
     {
         filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mv_.x & 7, mv_.y & 7,
                 filters);
-        //reference = output;
-        //reference_off = output_off;
+
     }
 
-    //return_off[0] = reference_off;
-    //return reference;
+
 }
 
 module.exports = {};
