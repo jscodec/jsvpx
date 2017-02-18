@@ -11,6 +11,13 @@ Works best in Safari.
 Based of code from John Koleszar's dixie libvpx branch : https://github.com/webmproject/libvpx/tree/dixie/vpx ,
 and Dominik Homberger's : https://github.com/dominikhlbg/vp8-webm-javascript-decoder.
 
+
+Currently moving towards the direction of the main branch.
+
+Looking to try some interesting things with webworkers, or perhaps some GPU.
+
+
+
 ### Current TODO
 * Figure out whats causing the slow parts, (Probably splitmode prediction)
 * Start testing out some webworkers

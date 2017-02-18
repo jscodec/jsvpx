@@ -2,10 +2,6 @@
 var MotionVector = require('./mv.js');
 
 var CURRENT_FRAME = 0;
-var LAST_FRAME = 1;
-var GOLDEN_FRAME = 2;
-var ALTREF_FRAME = 3;
-var NUM_REF_FRAMES = 4;
 
 var CNT_BEST = 0;
 var CNT_ZEROZERO = 0;

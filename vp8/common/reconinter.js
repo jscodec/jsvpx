@@ -11,37 +11,13 @@ var idctllm = require('../common/idctllm.js');
 var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
 var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
-function memset(ptr, ptr_off, value, num) {
+var c_utils = require('../../util/c_utils.js');
+var memset = c_utils.memset;
+var memset_32 = c_utils.memset_32;
+var memcpy = c_utils.memcpy;
 
-    var i = num;
-    while (i--)
-        ptr[ptr_off + i] = value;
-    
-}
 
-function memcpy(dst, dst_off, src, src_off, num) {
-    
-    var i = num;
-    while (i--) {
-        dst[dst_off + i] = src[src_off + i];
-    }
-    return dst;
-    
-}
 
-function memset_32(ptr, ptr_off, value, num){
-    
-    var i = num ;//>> 2;
-    var ptr_off_32 = ptr_off >> 2;
-    var ptr_32 = ptr.data_32;
-    var value_32 = value | value << 8  | value << 16 | value << 24;
-
-     var num_32 = num >> 2;
-     for(var i = 0; i < num_32; i++){
-         ptr_32[ptr_off_32 + (i >> 2)] = value_32;
-     }
-     
-}
 
 //Keep from having to redeclare this
 var chroma_mv = [

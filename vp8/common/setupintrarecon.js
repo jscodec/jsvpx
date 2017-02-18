@@ -12,6 +12,9 @@ var NEWMV = 8;
 var SPLITMV = 9;
 var MB_MODE_COUNT = 10;
 
+var c_utils = require('../../util/c_utils.js');
+var memset = c_utils.memset;
+
 /*
      if (start_col === 0) {
         //vp8_setup_intra_recon
@@ -80,12 +83,6 @@ function vp8_setup_intra_recon_top_line(ybf) {
     memset(data, uv_ptr, 127, uv_length);
 }
 
-function memset(ptr, ptr_off, value, num) {
-
-    var i = num;
-    while (i--)
-        ptr[ptr_off + i] = value;
-}
 
 module.exports = {};
 module.exports.vp8_setup_intra_recon = vp8_setup_intra_recon;

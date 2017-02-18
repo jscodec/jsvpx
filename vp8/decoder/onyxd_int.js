@@ -13,8 +13,6 @@ var mb_info = blockd.MODE_INFO;
 var vpx_image = require('../../vpx/vpx_image.js');
 var vpx_image_t = vpx_image.vpx_image_t;
 
-
-
 var MotionVector = require('../common/mv.js');
 var detokenize = require('./detokenize');
 var decode_mb_tokens = detokenize.decode_mb_tokens;

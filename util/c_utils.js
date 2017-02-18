@@ -38,7 +38,42 @@ function copy_entropy_values(header, otherHeader) {
         header.prob_inter = otherHeader.prob_inter;
         header.prob_last = otherHeader.prob_inter;
         header.prob_gf = otherHeader.prob_inter;
+}
+
+function memset(ptr, ptr_off, value, num) {
+
+    var i = num;
+    while (i--)
+        ptr[ptr_off + i] = value;
+}
+
+function memset_32(ptr, ptr_off, value, num) {
+
+    var i = num;//>> 2;
+    var ptr_off_32 = ptr_off >> 2;
+    var ptr_32 = ptr.data_32;
+    var value_32 = value | value << 8 | value << 16 | value << 24;
+
+    var num_32 = num >> 2;
+    for (var i = 0; i < num_32; i++) {
+        ptr_32[ptr_off_32 + (i >> 2)] = value_32;
     }
 
-module.exports={};
+}
+
+function memcpy(dst, dst_off, src, src_off, num) {
+    
+    var i = num;
+    while (i--) {
+        dst[dst_off + i] = src[src_off + i];
+    }
+    return dst;
+    
+}
+
+
+module.exports = {};
 module.exports.copy_entropy_values = copy_entropy_values;
+module.exports.memset = memset;
+module.exports.memset_32 = memset_32;
+module.exports.memcpy = memcpy;

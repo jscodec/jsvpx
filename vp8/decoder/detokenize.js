@@ -8,6 +8,8 @@ var bitreader = require('../../vpx_dsp/bitreader.js');
 var vpx_read = bitreader.vpx_read;
 var vpx_read_bit = bitreader.vpx_read_bit;
 
+var c_utils = require('../../util/c_utils.js');
+var memset = c_utils.memset;
 
 var DC_PRED = 0;
 var V_PRED = 1;
@@ -47,22 +49,8 @@ var DCT_VAL_CATEGORY4 = 8;
 var DCT_VAL_CATEGORY5 = 9;
 var DCT_VAL_CATEGORY6 = 10;
 
-var BLOCK_TYPES = 4;
-var PREV_COEF_CONTEXTS = 3;
-var COEF_BANDS = 8;
+
 var ENTROPY_NODES = 11;
-
-var CURRENT_FRAME = 0;
-var LAST_FRAME = 1;
-var GOLDEN_FRAME = 2;
-var ALTREF_FRAME = 3;
-var NUM_REF_FRAMES = 4;
-
-function memset(ptr, ptr_off, value, num) {
-    var i = num;
-    while (i--)
-        ptr[ptr_off + i] = value;
-}
 
 /**
  * Comparable to vp8_reset_mb_tokens_context

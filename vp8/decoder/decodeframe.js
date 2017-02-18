@@ -1,11 +1,4 @@
 'use strict';
-var setupintrarecon = require('../common/setupintrarecon.js');
-var vp8_setup_intra_recon = setupintrarecon.vp8_setup_intra_recon;
-var vp8_setup_intra_recon_top_line = setupintrarecon.vp8_setup_intra_recon_top_line;
-
-var vpx_codec = require('../../vpx/vpx_codec.js');
-var vpx_codec_ctx_t = vpx_codec.vpx_codec_ctx_t;
-
 var vp8_loopfilter = require('../common/vp8_loopfilter');
 var vp8_loop_filter_row_simple = vp8_loopfilter.vp8_loop_filter_row_simple;
 var vp8_loop_filter_row_normal = vp8_loopfilter.vp8_loop_filter_row_normal;
@@ -18,11 +11,7 @@ var bitreader = require('../../vpx_dsp/bitreader.js');
 var vpx_read = bitreader.vpx_read;
 var vpx_read_bit = bitreader.vpx_read_bit;
 
-
-var vp8_coef_update_probs = require('../common/coefupdateprobs.js');
-
 var entropymv = require('../common/entropymv.js');
-var vp8_mv_update_probs = entropymv.vp8_mv_update_probs;
 var vp8_default_mv_context = entropymv.vp8_default_mv_context;
 
 
@@ -37,13 +26,7 @@ var vp8_ac_yquant = quant_common.vp8_ac_yquant;
 var vp8_ac2quant = quant_common.vp8_ac2quant;
 var vp8_ac_uv_quant = quant_common.vp8_ac_uv_quant;
 
-var idctllm = require('../common/idctllm.js');
-var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
-var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
-
 var reconinter = require('../common/reconinter.js');
-var predict_inter_emulated_edge = reconinter.predict_inter_emulated_edge;
-var predict_inter = reconinter.predict_inter;
 var vp8_build_inter_predictors_mb = reconinter.vp8_build_inter_predictors_mb;
 
 var reconintra = require('../common/reconintra.js');
@@ -54,15 +37,9 @@ var dboolhuff = require('./dboolhuff.js');
 var vp8dx_start_decode = dboolhuff.vp8dx_start_decode;
 
 var decodemv = require("./decodemv.js");
-var read_mb_features = decodemv.read_mb_features;
-var decode_kf_mb_mode = decodemv.decode_kf_mb_mode;
-var decode_mvs = decodemv.decode_mvs;
 var vp8_decode_mode_mvs = decodemv.vp8_decode_mode_mvs;
 
 var entropymode = require('../common/entropymode.js');
-var vp8_uv_mode_prob = entropymode.vp8_uv_mode_prob;
-var vp8_bmode_prob = entropymode.vp8_bmode_prob;
-var vp8_ymode_prob = entropymode.vp8_ymode_prob;
 var vp8_init_mbmode_probs = entropymode.vp8_init_mbmode_probs;
 
 var vpx_image = require('../../vpx/vpx_image.js');
@@ -72,19 +49,14 @@ var img_alloc_helper = vpx_image.img_alloc_helper;
 var filter = require('../common/filter.js');
 var vp8_sub_pel_filters = filter.vp8_sub_pel_filters;
 var vp8_bilinear_filters = filter.vp8_bilinear_filters;
-var filter_block2d_first_pass = filter.filter_block2d_first_pass;
-var filter_block2d_second_pass = filter.filter_block2d_second_pass;
-var sixtap_2d = filter.sixtap_2d;
-var filter_block = filter.filter_block;
-
 
 var c_utils = require('../../util/c_utils.js');
 var copy_entropy_values = c_utils.copy_entropy_values;
+var memset = c_utils.memset;
+var memset_32 = c_utils.memset_32;
 
 var FRAME_HEADER_SZ = 3;
 var KEYFRAME_HEADER_SZ = 7;
-var MAX_PARTITIONS = 8;
-
 
 var CURRENT_FRAME = 0;
 var LAST_FRAME = 1;
@@ -92,13 +64,11 @@ var GOLDEN_FRAME = 2;
 var ALTREF_FRAME = 3;
 var NUM_REF_FRAMES = 4;
 
-var MAX_PARTITIONS = 8;
 var MAX_MB_SEGMENTS = 4;
 
 var TOKEN_BLOCK_Y1 = 0;
 var TOKEN_BLOCK_UV = 1;
 var TOKEN_BLOCK_Y2 = 2;
-var TOKEN_BLOCK_TYPES = 3;
 
 var VPX_PLANE_PACKED = 0;
 var VPX_PLANE_Y = 0;
@@ -110,19 +80,6 @@ var PLANE_Y = VPX_PLANE_Y;
 var PLANE_U = VPX_PLANE_U;
 var PLANE_V = VPX_PLANE_V;
 var PLANE_ALPHA = VPX_PLANE_ALPHA;
-
-var DC_PRED = 0;
-var V_PRED = 1;
-var H_PRED = 2;
-var TM_PRED = 3;
-var B_PRED = 4;
-var NEARESTMV = 5;
-var NEARMV = 6;
-var ZEROMV = 7;
-var NEWMV = 8;
-var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
-
 
 var CURRENT_FRAME = 0;
 var LAST_FRAME = 1;
@@ -132,16 +89,9 @@ var NUM_REF_FRAMES = 4;
 
 var BORDER_PIXELS = 16;
 
-var BLOCK_TYPES = 4;
-var PREV_COEF_CONTEXTS = 3;
-var COEF_BANDS = 8;
-var ENTROPY_NODES = 11;
-
 var MV_PROB_CNT = 19;
 
 var VPX_IMG_FMT_I420 = 258;
-
-
 
 var VPX_PLANE_PACKED = 0;
 var VPX_PLANE_Y = 0;
@@ -154,55 +104,16 @@ var PLANE_U = VPX_PLANE_U;
 var PLANE_V = VPX_PLANE_V;
 var PLANE_ALPHA = VPX_PLANE_ALPHA;
 
-var CURRENT_FRAME = 0;
-var LAST_FRAME = 1;
-var GOLDEN_FRAME = 2;
-var ALTREF_FRAME = 3;
-var NUM_REF_FRAMES = 4;
-
 var DC_PRED = 0;
-var V_PRED = 1;
-var H_PRED = 2;
-var TM_PRED = 3;
 var B_PRED = 4;
-var NEARESTMV = 5;
-var NEARMV = 6;
-var ZEROMV = 7;
-var NEWMV = 8;
-var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
 
 var CURRENT_FRAME = 0;
 
 var MB_FEATURE_TREE_PROBS = 3;
 var MAX_MB_SEGMENTS = 4;
 
-
 var FRAME_HEADER_SZ = 3;
 var KEYFRAME_HEADER_SZ = 7;
-
-
-
-function memset(ptr, ptr_off, value, num) {
-
-    var i = num;
-    while (i--)
-        ptr[ptr_off + i] = value;
-}
-
-function memset_32(ptr, ptr_off, value, num){
-    
-    var i = num ;//>> 2;
-    var ptr_off_32 = ptr_off >> 2;
-    var ptr_32 = ptr.data_32;
-    var value_32 = value | value << 8  | value << 16 | value << 24;
-
-     var num_32 = num >> 2;
-     for(var i = 0; i < num_32; i++){
-         ptr_32[ptr_off_32 + (i >> 2)] = value_32;
-     }
-     
-}
 
 
 /*

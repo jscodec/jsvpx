@@ -10,10 +10,6 @@ var vp8_loop_filter_mbv = loopfilter_filters.vp8_loop_filter_mbv;
 var vp8_loop_filter_bv_c = loopfilter_filters.vp8_loop_filter_bv_c;
 
 var CURRENT_FRAME = 0;
-var LAST_FRAME = 1;
-var GOLDEN_FRAME = 2;
-var ALTREF_FRAME = 3;
-var NUM_REF_FRAMES = 4;
 
 var VPX_PLANE_PACKED = 0;   /**< To be used for all packed formats */
 var VPX_PLANE_Y = 0;   /**< Y (Luminance) plane */

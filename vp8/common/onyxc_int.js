@@ -1,10 +1,5 @@
 'use strict';
 
-var BLOCK_TYPES = 4;
-var PREV_COEF_CONTEXTS = 3;
-var COEF_BANDS = 8;
-var ENTROPY_NODES = 11;
-
 var MV_PROB_CNT =19;
 
 class FRAME_CONTEXT {
