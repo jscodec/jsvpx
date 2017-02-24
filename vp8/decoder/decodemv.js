@@ -61,20 +61,7 @@ var CNT_SPLITMV = 3;
 
 
 var CURRENT_FRAME = 0;
-var LAST_FRAME = 1;
-var GOLDEN_FRAME = 2;
-var ALTREF_FRAME = 3;
-var NUM_REF_FRAMES = 4;
 
-var B_DC_PRED = 0; /* average of above and left pixels */
-var B_TM_PRED = 1;
-var B_VE_PRED = 2; /* vertical prediction */
-var B_HE_PRED = 3; /* horizontal prediction */
-var LEFT4X4 = 10;
-var ABOVE4X4 = 11;
-var ZERO4X4 = 12;
-var NEW4X4 = 13;
-var B_MODE_COUNT = 14;
 
 var MV_PROB_CNT = 19;
 
@@ -385,6 +372,8 @@ var near_mvs = [
     new MotionVector()
 ];
 
+var near_mvs_best =  new MotionVector();
+
 var chroma_mv = [
     new MotionVector(),
     new MotionVector(),
@@ -393,7 +382,7 @@ var chroma_mv = [
 ];
         
 var cnt = new Int32Array(4);
-
+var this_mv_tmp = new MotionVector();
 function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
     var mbmi = mi[this_off].mbmi;
@@ -458,7 +447,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         /* Process left */
         if (left_.mbmi.ref_frame !== INTRA_FRAME) {
             if (left_.mbmi.mv.as_int) {
-                var this_mv = new MotionVector();
+                var this_mv = this_mv_tmp;
 
                 this_mv.as_int = left_.mbmi.mv.as_int;
                 mv_bias(left_, sign_bias, this_.mbmi.ref_frame, this_mv);
@@ -476,7 +465,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         if (aboveleft_.mbmi.ref_frame !== INTRA_FRAME) {
 
             if (aboveleft_.mbmi.mv.as_int) {
-                var this_mv = new MotionVector();
+                var this_mv = this_mv_tmp;
 
                 this_mv.as_int = aboveleft_.mbmi.mv.as_int;
                 mv_bias(aboveleft_, sign_bias, this_.mbmi.ref_frame,
@@ -555,7 +544,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
                         //clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
                         
-                        clamped_best_mv.as_int = near_mvs[BEST].as_int;
+                        clamped_best_mv = near_mvs[BEST];
                         vp8_clamp_mv2(clamped_best_mv, bounds);
                         
                         
@@ -586,7 +575,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
                             //note we're passing in non-subsampled coordinates
                             if (need_mc_border(chroma_mv[b],
-                                    x + (b & 1) * 8, y + (b >> 1) * 8, 16, w, h))
+                                    x + (b & 1) * 8, y + ((b >> 1) << 3), 16, w, h))
                             {
                                 this_.mbmi.need_mc_border = 1;
                                 break;
@@ -596,8 +585,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
                     } else {
                         //new mv
-                        //clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
-                        clamped_best_mv.as_int = near_mvs[BEST].as_int;
+                        clamped_best_mv = near_mvs[BEST];
                         vp8_clamp_mv2(clamped_best_mv, bounds);
                         
                         read_mv(bool, this_.mbmi.mv, hdr.mv_probs);
@@ -609,16 +597,13 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                     //nearmv
                     this_.mbmi.mv.as_int = near_mvs[NEAR].as_int;
                     vp8_clamp_mv2(this_.mbmi.mv, bounds);
-                    //this_.mbmi.mv = clamp_mv(near_mvs[NEAR], bounds);
                     this_.mbmi.y_mode = NEARMV;
                 }
             } else {
                 this_.mbmi.y_mode = NEARESTMV;
                 this_.mbmi.mv.as_int = near_mvs[NEAREST].as_int;
                 vp8_clamp_mv2(this_.mbmi.mv, bounds);
-                //this_.mbmi.mv = clamp_mv(near_mvs[NEAREST], bounds);
-                //this_.mbmi.mv.as_int = near_mvs[NEAREST].as_int;
-                //vp8_clamp_mv2(this_.mbmi.mv, bounds);
+
                 
             }
         } else {
@@ -648,8 +633,8 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                 var b;
 
                 b = vp8_treed_read(bool, vp8_bmode_tree, vp8_bmode_prob , 0);
-                modes[i] = this_.bmi.mvs[i].x = b;
-                mvs[i].y = 0;
+                modes[i] = mvs[i].x = b;
+                //mvs[i].y = 0;
             }
         }
 
