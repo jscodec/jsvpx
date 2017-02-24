@@ -13,7 +13,9 @@ var cospi8sqrt2minus1 = 20091;
 var sinpi8sqrt2 = 35468; // (<<15 + 2700)
 var output = new Int16Array(16);
 var output_32 = new Uint32Array(output.buffer);
+var output_32_i = new Int32Array(output.buffer);
 output.data_32 = output_32;
+output.data_32_i = output_32_i;
 //
 //vp8_short_inv_walsh4x4_c
 function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
@@ -63,13 +65,22 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
     op = output;
     op_off = output_off;
 
+    var data_32 = ip.data_32;
+    var ip_32 = 0;
+
     for (i = 0; i < 4; i++)
     {
 
-        ip0 = ip[ip_off];
-        ip1 = ip[ip_off + 1];
-        ip2 = ip[ip_off + 2];
-        ip3 = ip[ip_off + 3];
+        ip_32 = data_32[ip_off >> 1];
+        ip1 = ((ip_32 >> 16));
+        ip0 = ((ip_32 << 16) >> 16);
+        
+        ip_32 = data_32[(ip_off + 2) >> 1];
+        ip3 = ((ip_32 >> 16));
+        ip2 = ((ip_32 << 16) >> 16);
+        
+
+
 
         a1 = ip0 + ip3;
         b1 = ip1 + ip2;
@@ -102,6 +113,7 @@ var tmp = new Int16Array(16);
 var shortpitch = 4;
 var shortpitch2 = 8;
 var shortpitch3 = 12;
+
 function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, coeffs, coeffs_off) {
 
     var i = 0;
@@ -168,12 +180,11 @@ function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, 
         temp2 = coeff_3 + ((coeff_3 * cospi8sqrt2minus1) >> 16);
         c1 = temp1 - temp2;
 
-        temp1 = coeff_1 +
-                ((coeff_1 * cospi8sqrt2minus1) >> 16);
+        temp1 = coeff_1 + ((coeff_1 * cospi8sqrt2minus1) >> 16);
         temp2 = (coeff_3 * sinpi8sqrt2) >> 16;
         d1 = temp1 + temp2;
         
-        
+
         
         r0 = CLAMP_255(predict[predict_off] + ((a1 + d1 + 4) >> 3));
         r1 = CLAMP_255(predict[predict_off + 1] + ((b1 + c1 + 4) >> 3));
