@@ -429,7 +429,11 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
     var mbi_cache = mbi[mbi_off];
     var mbmi_cache = mbi_cache.mbmi;
 
-    memset(coeffs, coeffs_off, 0, 400);
+    //memset(coeffs, coeffs_off, 0, 400);
+    var copy_dest = coeffs.data_64;
+    for(var c = 0; c < 200; c++){
+        copy_dest[c] = 0;
+    }
     
 
     if (mbmi_cache.mb_skip_coeff === 1) {
@@ -844,7 +848,7 @@ function vp8_decode_frame(data, decoder) {
 
         for (i = 0; i < partitions; i++) {
             ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
-            //ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
         }
 
         var mb_cols = ctx.mb_cols;

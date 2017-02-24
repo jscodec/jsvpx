@@ -44,7 +44,7 @@ function vp8_setup_intra_recon(predict, y_off, u_off, v_off, y_stride, uv_stride
     y_off -= y_stride;
 
     for (i = -1; i < 16; i++) {
-        y_buffer[y_off] = 129;//*
+        y_buffer[y_off] = 129;
         y_off += y_stride;
     }
     
@@ -80,7 +80,7 @@ function vp8_setup_intra_recon_top_line(ybf) {
     var uv_length = (ybf.d_w >> 1) + 5;
     memset(data, ybf.planes_off[0] - 1 - ybf.stride, 127, ybf.d_w + 5);//ybf.y_width + 5
     memset(data, uv_ptr, 127, uv_length);
-    memset(data, uv_ptr, 127, uv_length);
+    //memset(data, uv_ptr, 127, uv_length);
 }
 
 

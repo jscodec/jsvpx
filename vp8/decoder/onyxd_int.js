@@ -18,25 +18,7 @@ var detokenize = require('./detokenize');
 var decode_mb_tokens = detokenize.decode_mb_tokens;
 var reset_mb_context = detokenize.reset_mb_context;
 
-var decodemv = require("./decodemv.js");
-var read_mb_features = decodemv.read_mb_features;
-var decode_kf_mb_mode = decodemv.decode_kf_mb_mode;
-var decode_mvs = decodemv.decode_mvs;
 
-var vp8_entropymodedata = require("../common/vp8_entropymodedata");
-var vp8_kf_bmode_prob = vp8_entropymodedata.vp8_kf_bmode_prob;
-
-
-
-var B_DC_PRED = 0; /* average of above and left pixels */
-var B_TM_PRED = 1;
-var B_VE_PRED = 2; /* vertical prediction */
-var B_HE_PRED = 3; /* horizontal prediction */
-var LEFT4X4 = 10;
-var ABOVE4X4 = 11;
-var ZERO4X4 = 12;
-var NEW4X4 = 13;
-var B_MODE_COUNT = 14;
 
 var CURRENT_FRAME = 0;
 var LAST_FRAME = 1;
@@ -229,7 +211,7 @@ class VP8D_COMP {
             this.mb_info_rows_storage_off = new Uint32Array(mbi_h);
         }
 
-        ptr = this.mb_info_storage_off + 1;
+        ptr = 1;
 
         for (i = 0; i < mbi_h; i++) {
             this.mb_info_rows_storage_off[i] = ptr;

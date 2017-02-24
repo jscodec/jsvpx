@@ -613,8 +613,8 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         }
 
                         for (b = 0; b < 4; b++) {
-                            chroma_mv[b].x += 4 + 8 * (chroma_mv[b].x >> 31) | 0;///* + 8 * (chroma_mv[b].x >> 31)*/;
-                            chroma_mv[b].y += 4 + 8 * (chroma_mv[b].y >> 31) | 0;
+                            chroma_mv[b].x += 4 + (chroma_mv[b].x >> 28) | 0;///* + 8 * (chroma_mv[b].x >> 31)*/;
+                            chroma_mv[b].y += 4 + (chroma_mv[b].y >> 28) | 0;
                             chroma_mv[b].x = (chroma_mv[b].x >> 2);
                             chroma_mv[b].y = (chroma_mv[b].y >> 2);
 

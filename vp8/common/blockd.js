@@ -1,11 +1,6 @@
 'use strict';
 var MotionVector = require('./mv.js');
 
-var SPLITMV_16X8 = 0;
-var SPLITMV_8X16 = 1;
-var SPLITMV_8X8 = 2;
-var SPLITMV_4X4 = 3;
-
 //left_context_index
 var vp8_block2left =
         new Uint8Array([
