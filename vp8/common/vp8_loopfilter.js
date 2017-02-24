@@ -15,24 +15,18 @@ var VPX_PLANE_PACKED = 0;   /**< To be used for all packed formats */
 var VPX_PLANE_Y = 0;   /**< Y (Luminance) plane */
 var VPX_PLANE_U = 1;   /**< U (Chroma) plane */
 var VPX_PLANE_V = 2;   /**< V (Chroma) plane */
-var VPX_PLANE_ALPHA = 3;   /**< A (Transparency) plane */
-var PLANE_PACKED = VPX_PLANE_PACKED;
+
 var PLANE_Y = VPX_PLANE_Y;
 var PLANE_U = VPX_PLANE_U;
 var PLANE_V = VPX_PLANE_V;
-var PLANE_ALPHA = VPX_PLANE_ALPHA;
 
-var DC_PRED = 0;
-var V_PRED = 1;
-var H_PRED = 2; /* horizontal prediction */
-var TM_PRED = 3; /* Truemotion prediction */
 var B_PRED = 4; /* block mbmid prediction, each block has its own prediction mode */
 var NEARESTMV = 5;
 var NEARMV = 6;
 var ZEROMV = 7;
 var NEWMV = 8;
 var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
+
 
 var abs = Math.abs;
 
@@ -109,6 +103,7 @@ function vp8_loop_filter_row_simple(ctx, row) {
     }
             
 }
+var edge_limit_cache = new Uint8Array([0]), interior_limit_cache = new Uint8Array([0]), hev_threshold_cache = new Uint8Array([0]);
 
 function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
     var y = 0, u = 0, v = 0;
@@ -134,8 +129,8 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
 
     for (col = start_col; col < start_col + num_cols; col++)
     {
-        var edge_limit = [0], interior_limit = [0], hev_threshold = [0];
-
+        //var edge_limit = [0], interior_limit = [0], hev_threshold = [0];
+        var edge_limit = edge_limit_cache, interior_limit = interior_limit_cache, hev_threshold = hev_threshold_cache;
         /* TODO: only need to recalculate every MB if segmentation is
          * enabled.
          */

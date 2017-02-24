@@ -39,12 +39,14 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
     var ip8 = 0;
     var ip4 = 0;
 
+ 
+      
     for (i = 0; i < 4; i++)
     {
-        ip0 = ip[ip_off] | 0;
-        ip4 = ip[ip_off + 4] | 0;
-        ip8 = ip[ip_off + 8] | 0;
-        ip12 = ip[ip_off + 12] | 0;
+        ip0 = ip[ip_off];
+        ip4 = ip[ip_off + 4];
+        ip8 = ip[ip_off + 8];
+        ip12 = ip[ip_off + 12];
 
 
         a1 = (ip0 + ip12) | 0;

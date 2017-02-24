@@ -67,7 +67,7 @@ function vp8_loop_filter_simple_horizontal_edge_c(src, src_off, stride, filter_l
     var i = 0;
 
     for (i = 0; i < 16; i++) {
-        if (simple_threshold(src, src_off, stride, filter_limit))
+        if (simple_threshold(src, src_off, stride, filter_limit) === 1)
             vp8_filter(src, src_off, stride, 1);
 
         src_off += 1;
@@ -80,7 +80,7 @@ function simple_threshold(pixels, pixels_off, stride, filter_limit) {
     var q0 = pixels[pixels_off];
     var q1 = pixels[pixels_off + stride];
 
-    return ((abs(p0 - q0) * 2 + (abs(p1 - q1) >> 1)) <= filter_limit) | 0;
+    return (((abs(p0 - q0) << 1) + (abs(p1 - q1) >> 1)) <= filter_limit) | 0;
 }
 
 function vp8_loop_filter_bvs_c(y, y_off, stride, b_limit) {

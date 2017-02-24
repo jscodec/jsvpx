@@ -8,12 +8,7 @@ var V_PRED = 1;
 var H_PRED = 2;
 var TM_PRED = 3;
 var B_PRED = 4;
-var NEARESTMV = 5;
-var NEARMV = 6;
-var ZEROMV = 7;
-var NEWMV = 8;
-var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
+
 
 
 
@@ -170,7 +165,7 @@ function  predict_dc_nxn(predict, predict_off, stride, n) {
     var dc = 0;
 
     for (i = 0; i < n; i++) {
-        dc += left[left_off] + above[above_off + i];//*left
+        dc += left[left_off] + above[above_off + i];
         left_off += stride;
     }
 
@@ -255,8 +250,8 @@ function predict_intra_luma(predict,
             coeffs_off += 16;
             predict_off += 4;
 
-            if ((i & 3) == 3)
-                predict_off += stride * 4 - 16;
+            if ((i & 3) === 3)
+                predict_off += (stride << 2) - 16;
         }
 
     }
@@ -276,7 +271,7 @@ function  b_pred(predict, predict_off, stride, mbi, coeffs, coeffs_off) {
 
     for (i = 0; i < 16; i++) {
         var b_predict = predict;
-        var b_predict_off = predict_off + (i & 3) * 4;
+        var b_predict_off = predict_off + ((i & 3) << 2);
 
 
         switch (mbi.bmi.modes[i])
@@ -393,41 +388,42 @@ function predict_vr_4x4(predict, predict_off, stride) {
     var pred0 = 0, pred1 = 0, pred2 = 0, pred3 = 0, pred4 = 0, pred5 = 0, pred6 = 0,
             pred7 = 0, pred8 = 0, pred9 = 0;
     
-    var above0 = above[above_off];
-    var above1 = above[above_off + 1];
-    var above2 = above[above_off + 2];
-    var above3 = above[above_off + 3];
+    var above_32 = above.data_32[above_off >> 2];
+    var above0 = above_32 & 0xFF;
+    var above1 = (above_32 >> 8) & 0xFF;
+    var above2 = (above_32 >> 16) & 0xFF;
+    var above3 = (above_32 >> 24) & 0xFF;
     
     var left0 = left[left_off + 0];
 
-    predict[predict_off] = pred0 = (above[above_off - 1] + above0 + 1) >> 1;
-    predict[predict_off + 1] = pred1 = (above0 + above1 + 1) >> 1;
-    predict[predict_off + 2] = pred2 = (above1 + above2 + 1) >> 1;
-    predict[predict_off + 3] = pred3 = (above2 + above3 + 1) >> 1;
+    pred0 = (above[above_off - 1] + above0 + 1) >> 1;
+    pred1 = (above0 + above1 + 1) >> 1;
+    pred2 = (above1 + above2 + 1) >> 1;
+    pred3 = (above2 + above3 + 1) >> 1;
+    
+    predict.data_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
     predict_off += stride;
 
-    predict[predict_off + 0] = pred4 =
-            (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
-    predict[predict_off + 1] = pred5 =
-            (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
-    predict[predict_off + 2] = pred6 =
-            (above0 + 2 * above1 + above2 + 2) >> 2;
-    predict[predict_off + 3] = pred7 =
-            (above1 + 2 * above2 + above[above_off + 3] + 2) >> 2;
+    pred4 = (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
+    pred5 = (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
+    pred6 = (above0 + 2 * above1 + above2 + 2) >> 2;
+    pred7 = (above1 + 2 * above2 + above[above_off + 3] + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred4 | (pred5 << 8) | (pred6 << 16) | (pred7 << 24);
+    
     predict_off += stride;
 
-    predict[predict_off + 0] = pred8 =
-            (left[left_off + stride] + 2 * left0 + above[above_off - 1] + 2) >> 2;
-    predict[predict_off + 1] = pred0;
-    predict[predict_off + 2] = pred1;
-    predict[predict_off + 3] = pred2;
+    pred8 = (left[left_off + stride] + 2 * left0 + above[above_off - 1] + 2) >> 2;
+
+    
+    predict.data_32[predict_off >> 2] = pred8 | (pred0 << 8) | (pred1 << 16) | (pred2 << 24);
+    
     predict_off += stride;
 
-    predict[predict_off + 0] = pred9 =
-            (left[left_off + stride * 2] + 2 * left[left_off + stride] + left0 + 2) >> 2;
-    predict[predict_off + 1] = pred4;
-    predict[predict_off + 2] = pred5;
-    predict[predict_off + 3] = pred6;
+    pred9 = (left[left_off + stride * 2] + 2 * left[left_off + stride] + left0 + 2) >> 2;
+
+    
+    predict.data_32[predict_off >> 2] = pred9 | (pred4 << 8) | (pred5 << 16) | (pred6 << 24);
 }
 
 
@@ -438,44 +434,42 @@ function predict_rd_4x4(predict, predict_off, stride) {
     var above_off = predict_off - stride;
     var pred0 = 0, pred1 = 0, pred2 = 0, pred3 = 0, pred4 = 0, pred5 = 0, pred6 = 0;
 
-    var above0 = above[above_off];
-    var above1 = above[above_off + 1];
-    var above2 = above[above_off + 2];
-    var above3 = above[above_off + 3];
+    var above_32 = above.data_32[above_off >> 2];
+    var above0 = above_32 & 0xFF;
+    var above1 = (above_32 >> 8) & 0xFF;
+    var above2 = (above_32 >> 16) & 0xFF;
+    var above3 = (above_32 >> 24) & 0xFF;
     
     var left0 = left[left_off];
     var left1 = left[left_off + stride];
     var left2 = left[left_off + stride * 2];
 
-    predict[predict_off + 0] = pred0 =
-            (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
-    predict[predict_off + 1] = pred1 =
-            (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
-    predict[predict_off + 2] = pred2 =
-            (above0 + 2 * above1 + above2 + 2) >> 2;
-    predict[predict_off + 3] = pred3 =
-            (above1 + 2 * above2 + above3 + 2) >> 2;
+    pred0 = (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
+    pred1 = (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
+    pred2 = (above0 + 2 * above1 + above2 + 2) >> 2;
+    pred3 = (above1 + 2 * above2 + above3 + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
+    
+    
     predict_off += stride;
 
-    predict[predict_off + 0] = pred4 =
-            (left1 + 2 * left0 + above[above_off - 1] + 2) >> 2;
-    predict[predict_off + 1] = pred0;
-    predict[predict_off + 2] = pred1;
-    predict[predict_off + 3] = pred2;
+    pred4 = (left1 + 2 * left0 + above[above_off - 1] + 2) >> 2;
+
+    predict.data_32[predict_off >> 2] = pred4 | (pred0 << 8) | (pred1 << 16) | (pred2 << 24);
+    
     predict_off += stride;
 
-    predict[predict_off + 0] = pred5 =
-            (left2 + 2 * left1 + left0 + 2) >> 2;
-    predict[predict_off + 1] = pred4;
-    predict[predict_off + 2] = pred0;
-    predict[predict_off + 3] = pred1;
+    pred5 = (left2 + 2 * left1 + left0 + 2) >> 2;
+
+    
+    predict.data_32[predict_off >> 2] = pred5 | (pred4 << 8) | (pred0 << 16) | (pred1 << 24);
     predict_off += stride;
 
-    predict[predict_off + 0] = pred6 =
-            (left[left_off + stride * 3] + 2 * left2 + left1 + 2) >> 2;
-    predict[predict_off + 1] = pred5;
-    predict[predict_off + 2] = pred4;
-    predict[predict_off + 3] = pred0;
+    pred6 = (left[left_off + stride * 3] + 2 * left2 + left1 + 2) >> 2;
+
+    
+    predict.data_32[predict_off >> 2] = pred6 | (pred5 << 8) | (pred4 << 16) | (pred0 << 24);
 }
 
 
@@ -548,34 +542,33 @@ function predict_hu_4x4(predict, predict_off, stride) {
     var left2 = left[left_off + stride * 2];
     var left3 = left[left_off + stride * 3];
 
-    predict[predict_off + 0] = pred0 =
-            (left0 + left1 + 1) >> 1;
-    predict[predict_off + 1] = pred1 =
-            (left0 + 2 * left1 + left2 + 2) >> 2;
-    predict[predict_off + 2] = pred2 =
-            (left1 + left2 + 1) >> 1;
-    predict[predict_off + 3] = pred3 =
-            (left1 + 2 * left2 + left3 + 2) >> 2;
+    pred0 = (left0 + left1 + 1) >> 1;
+    pred1 = (left0 + 2 * left1 + left2 + 2) >> 2;
+    pred2 = (left1 + left2 + 1) >> 1;
+    pred3 = (left1 + 2 * left2 + left3 + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred0 | pred1 << 8 | pred2 << 16 | pred3 << 24;
+    
+    predict_off += stride;
+    
+    
+
+    //predict[predict_off + 0] = pred2;
+    //predict[predict_off + 1] = pred3;
+    pred4 = (left2 + left3 + 1) >> 1;
+    pred5 = (left2 + 2 * left3 + left3 + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred2 | pred3 << 8 | pred4 << 16 | pred5 << 24;
+    predict_off += stride;
+    
+    pred6 = left3;
+
+
+    predict.data_32[predict_off >> 2] = pred4 | pred5 << 8 | pred6 << 16 | pred6 << 24;
     predict_off += stride;
 
-    predict[predict_off + 0] = pred2;
-    predict[predict_off + 1] = pred3;
-    predict[predict_off + 2] = pred4 =
-            (left2 + left3 + 1) >> 1;
-    predict[predict_off + 3] = pred5 =
-            (left2 + 2 * left3 + left3 + 2) >> 2;
-    predict_off += stride;
 
-    predict[predict_off + 0] = pred4;
-    predict[predict_off + 1] = pred5;
-    predict[predict_off + 2] = pred6 = left3;
-    predict[predict_off + 3] = pred6;
-    predict_off += stride;
-
-    predict[predict_off + 0] = pred6;
-    predict[predict_off + 1] = pred6;
-    predict[predict_off + 2] = pred6;
-    predict[predict_off + 3] = pred6;
+    predict.data_32[predict_off >> 2] = pred6 | pred6 << 8 | pred6 << 16 | pred6 << 24;
 }
 
 
@@ -630,39 +623,48 @@ function predict_vl_4x4(predict, predict_off, stride) {
     var pred0 = 0, pred1 = 0, pred2 = 0, pred3 = 0, pred4 = 0, pred5 = 0, pred6 = 0,
             pred7 = 0, pred8 = 0, pred9 = 0;
 
-    var above0 = above[above_off] | 0;
-    var above1 = above[above_off + 1] | 0;
-    var above2 = above[above_off + 2] | 0;
-    var above3 = above[above_off + 3] | 0;
-    var above4 = above[above_off + 4];
+    var above_32 = above.data_32[above_off >> 2];
+    var above0 = above_32 & 0xFF;
+    var above1 = (above_32 >> 8) & 0xFF;
+    var above2 = (above_32 >> 16) & 0xFF;
+    var above3 = (above_32 >> 24) & 0xFF;
+    
+    above_32 = above.data_32[(above_off >> 2) + 1];
+    var above4 = above_32 & 0xFF; //above[above_off] | 0;
+    var above5 = (above_32 >> 8) & 0xFF;  // above[above_off + 1] | 0;
+    var above6 = (above_32 >> 16) & 0xFF;  //above[above_off + 2] | 0;
+    var above7 = (above_32 >> 24) & 0xFF;
     
     
-    predict[predict_off] = pred0 = (above0 + above1 + 1) >> 1;
-    predict[predict_off + 1] = pred1 = (above1 + above2 + 1) >> 1;
-    predict[predict_off + 2] = pred2 = (above2 + above3 + 1) >> 1;
-    predict[predict_off + 3] = pred3 = (above[above_off + 3] + above4 + 1) >> 1;
+    pred0 = (above0 + above1 + 1) >> 1;
+    pred1 = (above1 + above2 + 1) >> 1;
+    pred2 = (above2 + above3 + 1) >> 1;
+    pred3 = (above[above_off + 3] + above4 + 1) >> 1;
+    
+    predict.data_32[predict_off >> 2] = pred0 | pred1 << 8 | pred2 << 16 | pred3 << 24;
+    
     predict_off += stride;
 
-    predict[predict_off] = pred4 =
-            (above0 + 2 * above1 + above2 + 2) >> 2;
-    predict[predict_off + 1] = pred5 =
-            (above1 + 2 * above2 + above3 + 2) >> 2;
-    predict[predict_off + 2] = pred6 =
-            (above2 + 2 * above3 + above4 + 2) >> 2;
-    predict[predict_off + 3] = pred7 =
-            (above3 + 2 * above4 + above[above_off + 5] + 2) >> 2;
+    pred4 = (above0 + 2 * above1 + above2 + 2) >> 2;
+    pred5 = (above1 + 2 * above2 + above3 + 2) >> 2;
+    pred6 = (above2 + 2 * above3 + above4 + 2) >> 2;
+    pred7 = (above3 + 2 * above4 + above[above_off + 5] + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred4 | pred5 << 8 | pred6 << 16 | pred7 << 24;
+    
     predict_off += stride;
 
-    predict[predict_off] = pred1;
-    predict[predict_off + 1] = pred2;
-    predict[predict_off + 2] = pred3;
-    predict[predict_off + 3] = pred8 = (above4 + 2 * above[above_off + 5] + above[above_off + 6] + 2) >> 2;
+
+    pred8 = (above4 + 2 * above5 + above6 + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred1 | pred2 << 8 | pred3 << 16 | pred8 << 24;
+    
     predict_off += stride;
 
-    predict[predict_off] = pred5;
-    predict[predict_off + 1] = pred6;
-    predict[predict_off + 2] = pred7;
-    predict[predict_off + 3] = (above[above_off + 5] + 2 * above[above_off + 6] + above[above_off + 7] + 2) >> 2;
+
+    pred8 = (above5 + 2 * above6 + above7 + 2) >> 2;
+    
+    predict.data_32[predict_off >> 2] = pred5 | pred6 << 8 | pred7 << 16 | pred8 << 24;
 }
 
 

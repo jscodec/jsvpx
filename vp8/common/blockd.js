@@ -59,6 +59,8 @@ class MODE_INFO {
             segment_id: 0,
             eob_mask: 0
         };
+        
+        this.bmi = null;
 
         /*
         var mvs = new Array(16);

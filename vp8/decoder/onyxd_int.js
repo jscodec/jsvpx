@@ -87,10 +87,7 @@ class token_decoder {
 
 }
 
-//ENTROPY_CONTEXT_PLANES
-var token_entropy_ctx_t = function () {
-    return new Int32Array(9);
-};
+
 
 
 //VP8D_COMP

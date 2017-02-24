@@ -224,13 +224,13 @@ function build_mc_border(dst, dst_off, src, src_off, stride, x, y, b_w, b_h, w, 
 
         copy = b_w - left - right;
         
-        if (left)
+        if (left > 0)
             memset(dst, dst_off, ref_row[ref_row_off], left);
 
-        if (copy)
+        if (copy > 0)
             memcpy(dst, dst_off + left, ref_row, ref_row_off + x + left, copy);
 
-        if (right)
+        if (right > 0)
             memset(dst, dst_off + left + copy, ref_row[ref_row_off + w - 1], right);
 
         dst_off += stride;

@@ -1,7 +1,7 @@
 'use strict';
 var default_coef_probs = require('./default_coef_probs.js');
 var default_coef_probs_32 = default_coef_probs.data_32;
-
+var default_coef_probs_64 = default_coef_probs.data_64;
 
 function vp8_default_coef_probs(pc) {
 

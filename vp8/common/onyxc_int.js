@@ -11,7 +11,7 @@ class FRAME_CONTEXT {
         //Coeff probs gets treated as a pointer later so cant use multi array anyway
         this.coeff_probs = new Uint8Array(1056);
         this.coeff_probs.data_32 = new Uint32Array(this.coeff_probs.buffer);
-        //this.coeff_probs.data_64 = new Float64Array(this.coeff_probs.buffer);
+        this.coeff_probs.data_64 = new Float64Array(this.coeff_probs.buffer);
 
         //MV_CONTEXT
         this.mv_probs = [

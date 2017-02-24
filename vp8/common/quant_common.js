@@ -81,7 +81,7 @@ function vp8_dc2quant( QIndex,  Delta) {
     QIndex = 0;
   }
 
-  retval = dc_qlookup[QIndex] * 2;
+  retval = dc_qlookup[QIndex] << 1;
   return retval;
 }
 
