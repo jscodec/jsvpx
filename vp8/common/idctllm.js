@@ -12,6 +12,7 @@ function CLAMP_255(x) {
 var cospi8sqrt2minus1 = 20091;
 var sinpi8sqrt2 = 35468; // (<<15 + 2700)
 var output = new Int16Array(16);
+var output_32 = new Uint32Array(output.buffer);
 
 //
 //vp8_short_inv_walsh4x4_c
@@ -80,10 +81,9 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
         d2 = d1 - c1;
 
         
-        op[op_off] = (a2 + 3) >> 3;
-        op[op_off + 1] = (b2 + 3) >> 3;
-        op[op_off + 2] = (c2 + 3) >> 3;
-        op[op_off + 3] = (d2 + 3) >> 3;
+   
+        output_32[op_off >> 1] = ((a2 + 3) >> 3 ) & 0xFFFF | ( ((b2 + 3) >> 3)  << 16);
+        output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3 ) & 0xFFFF | ( ((d2 + 3) >> 3)  << 16);
         
 
         ip_off += 4;

@@ -21,7 +21,6 @@ var md5 = require('js-md5');
 var c_utils = require('../util/c_utils.js');
 var copy_entropy_values = c_utils.copy_entropy_values;
 
-var include = require('../util/include.js');
 
 
 var decodeframe = require('../vp8/decoder/decodeframe.js');

@@ -120,6 +120,7 @@ var vp8_mbsplit_probs = new Uint8Array([110, 111, 150]);
 
 // k_default_y_mode_probs
 var vp8_ymode_prob = new Uint8Array([112, 86, 140, 37]);
+var vp8_ymode_prob_32 = new Uint32Array(vp8_ymode_prob.buffer);
 
 //k_default_uv_mode_probs
 var vp8_uv_mode_prob = new Uint8Array([162, 101, 204]);
@@ -134,12 +135,9 @@ var vp8_kf_ymode_prob = new Uint8Array([145, 156, 163, 128]);
 var vp8_bmode_prob = new Uint8Array([120, 90, 79, 133, 87, 85, 80, 111, 151]);
 
 function vp8_init_mbmode_probs(x) {
-    
+
     var probs = vp8_ymode_prob;
-    x.entropy_hdr.y_mode_probs[0] = probs[0];
-    x.entropy_hdr.y_mode_probs[1] = probs[1];
-    x.entropy_hdr.y_mode_probs[2] = probs[2];
-    x.entropy_hdr.y_mode_probs[3] = probs[3];
+    x.entropy_hdr.y_mode_probs_32[0] = vp8_ymode_prob_32[0];
 
     probs = vp8_uv_mode_prob;
     //for (var i = 0; i < 3; i++)
