@@ -185,60 +185,21 @@ var LEFT_TOP_MARGIN  = (16 << 3);
 var RIGHT_BOTTOM_MARGIN = (16 << 3);
 
 function vp8_clamp_mv2(mv, bounds) {
-    if (mv.x < (bounds.mb_to_left_edge - LEFT_TOP_MARGIN)) {
-        mv.x = bounds.mb_to_left_edge - LEFT_TOP_MARGIN;
-    } else if (mv.x > bounds.mb_to_right_edge + RIGHT_BOTTOM_MARGIN) {
-        mv.x = bounds.mb_to_right_edge + RIGHT_BOTTOM_MARGIN;
+    if (mv.x < (bounds.mb_to_left_edge)) {
+        mv.x = bounds.mb_to_left_edge ;
+    } else if (mv.x > bounds.mb_to_right_edge) {
+        mv.x = bounds.mb_to_right_edge;
     }
 
-    if (mv.y < (bounds.mb_to_top_edge - LEFT_TOP_MARGIN)) {
-        mv.y = bounds.mb_to_top_edge - LEFT_TOP_MARGIN;
+    if (mv.y < (bounds.mb_to_top_edge )) {
+        mv.y = bounds.mb_to_top_edge;
     }
-    else if (mv.y > bounds.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) {
-        mv.y = bounds.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN;
+    else if (mv.y > bounds.mb_to_bottom_edge) {
+        mv.y = bounds.mb_to_bottom_edge ;
     }
 }
 
-var mv_clamp_mv = new MotionVector();
-
-function clamp_mv(raw, bounds) {
-    var newmv = new MotionVector();
-    //newmv.x = (raw.x < bounds.mb_to_left_edge)
-    //      ? bounds.mb_to_left_edge : raw.x;
-    if (raw.x < bounds.mb_to_left_edge) {
-        newmv.x = bounds.mb_to_left_edge;
-    } else {
-        newmv.x = raw.x;
-    }
-
-    //newmv.x = (raw.x > bounds.mb_to_right_edge)
-    //      ? bounds.mb_to_right_edge : newmv.x;
-
-    if (raw.x > bounds.mb_to_right_edge) {
-        newmv.x = bounds.mb_to_right_edge;
-    } //else {
-    //  newmv.x = newmv.x;
-    //}        
-
-    //newmv.y = (raw.y < bounds.mb_to_top_edge)
-    //      ? bounds.mb_to_top_edge : raw.y;
-
-    if (raw.y < bounds.mb_to_top_edge) {
-        newmv.y = bounds.mb_to_top_edge;
-    } else {
-        newmv.y = raw.y;
-    }
-
-    newmv.y = (raw.y > bounds.mb_to_bottom_edge)
-            ? bounds.mb_to_bottom_edge : newmv.y;
-
-    if (raw.y > bounds.mb_to_bottom_edge) {
-        newmv.y = bounds.mb_to_bottom_edge;
-    }
-
-
-    return newmv;
-}
+//var mv_clamp_mv = new MotionVector();
 
 
 function read_mv(bool, mv, mvc) {
@@ -515,7 +476,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         if (aboveleft_.mbmi.ref_frame !== INTRA_FRAME) {
 
             if (aboveleft_.mbmi.mv.as_int) {
-                var this_mv = new MotionVector();;
+                var this_mv = new MotionVector();
 
                 this_mv.as_int = aboveleft_.mbmi.mv.as_int;
                 mv_bias(aboveleft_, sign_bias, this_.mbmi.ref_frame,
@@ -592,7 +553,12 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         chroma_mv[3].as_int = 0;
                
 
-                        clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
+                        //clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
+                        
+                        clamped_best_mv.as_int = near_mvs[BEST].as_int;
+                        vp8_clamp_mv2(clamped_best_mv, bounds);
+                        
+                        
                         decode_split_mv(this_, left_, above, hdr, clamped_best_mv, bool);//&clamped_best_mv
                         this_.mbmi.mv.as_int = this_.bmi.mvs[15].as_int;
        
@@ -630,7 +596,10 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
                     } else {
                         //new mv
-                        clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
+                        //clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
+                        clamped_best_mv.as_int = near_mvs[BEST].as_int;
+                        vp8_clamp_mv2(clamped_best_mv, bounds);
+                        
                         read_mv(bool, this_.mbmi.mv, hdr.mv_probs);
                         this_.mbmi.mv.x += clamped_best_mv.x;
                         this_.mbmi.mv.y += clamped_best_mv.y;
@@ -638,12 +607,16 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                     }
                 } else {
                     //nearmv
-                    this_.mbmi.mv = clamp_mv(near_mvs[NEAR], bounds);
+                    this_.mbmi.mv.as_int = near_mvs[NEAR].as_int;
+                    vp8_clamp_mv2(this_.mbmi.mv, bounds);
+                    //this_.mbmi.mv = clamp_mv(near_mvs[NEAR], bounds);
                     this_.mbmi.y_mode = NEARMV;
                 }
             } else {
                 this_.mbmi.y_mode = NEARESTMV;
-                this_.mbmi.mv = clamp_mv(near_mvs[NEAREST], bounds);
+                this_.mbmi.mv.as_int = near_mvs[NEAREST].as_int;
+                vp8_clamp_mv2(this_.mbmi.mv, bounds);
+                //this_.mbmi.mv = clamp_mv(near_mvs[NEAREST], bounds);
                 //this_.mbmi.mv.as_int = near_mvs[NEAREST].as_int;
                 //vp8_clamp_mv2(this_.mbmi.mv, bounds);
                 
