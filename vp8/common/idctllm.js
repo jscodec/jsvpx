@@ -13,7 +13,7 @@ var cospi8sqrt2minus1 = 20091;
 var sinpi8sqrt2 = 35468; // (<<15 + 2700)
 var output = new Int16Array(16);
 var output_32 = new Uint32Array(output.buffer);
-
+output.data_32 = output_32;
 //
 //vp8_short_inv_walsh4x4_c
 function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
@@ -65,6 +65,7 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
 
     for (i = 0; i < 4; i++)
     {
+
         ip0 = ip[ip_off];
         ip1 = ip[ip_off + 1];
         ip2 = ip[ip_off + 2];
@@ -80,11 +81,11 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
         c2 = a1 - b1;
         d2 = d1 - c1;
 
-        
-   
-        output_32[op_off >> 1] = ((a2 + 3) >> 3 ) & 0xFFFF | ( ((b2 + 3) >> 3)  << 16);
-        output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3 ) & 0xFFFF | ( ((d2 + 3) >> 3)  << 16);
-        
+
+
+        output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+        output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+
 
         ip_off += 4;
         op_off += 4;
@@ -98,7 +99,9 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
 }
 
 var tmp = new Int16Array(16);
-
+var shortpitch = 4;
+var shortpitch2 = 8;
+var shortpitch3 = 12;
 function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, coeffs, coeffs_off) {
 
     var i = 0;
@@ -112,32 +115,30 @@ function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, 
     var ip_off = coeffs_off;
     var op = tmp;
     var op_off = tmp_off;
-    var shortpitch = 4;
-    
+
+
     for (i = 0; i < 4; i++) {
         var ip_0 = ip[ip_off];
         var ip_4 = ip[ip_off + 4];
         var ip_12 = ip[ip_off + 12];
         var ip_8 = ip[ip_off + 8];
 
-        a1 = ip_0+ ip_8;
+        a1 = ip_0 + ip_8;
         b1 = ip_0 - ip_8;
 
         temp1 = (ip_4 * sinpi8sqrt2) >> 16;
-        temp2 = ip_12 +
-                ((ip_12 * cospi8sqrt2minus1/* + rounding */) >> 16);
+        temp2 = ip_12 + ((ip_12 * cospi8sqrt2minus1/* + rounding */) >> 16);
         c1 = temp1 - temp2;
 
-        temp1 = ip_4 +
-                ((ip_4 * cospi8sqrt2minus1) >> 16);
+        temp1 = ip_4 + ((ip_4 * cospi8sqrt2minus1) >> 16);
         temp2 = (ip_12 * sinpi8sqrt2) >> 16;
         d1 = temp1 + temp2;
 
         op[op_off] = a1 + d1;
-        op[op_off + shortpitch * 3] = a1 - d1;
+        op[op_off + shortpitch3] = a1 - d1;
 
         op[op_off + shortpitch] = b1 + c1;
-        op[op_off + shortpitch * 2] = b1 - c1;
+        op[op_off + shortpitch2] = b1 - c1;
 
         ip_off++;
         op_off++;
@@ -147,32 +148,40 @@ function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, 
 
     coeffs = tmp;
     coeffs_off = tmp_off;
-
+    var recon_32 = recon.data_32;
+    var r0, r1, r2, r3;
+    
     for (i = 0; i < 4; i++) {
 
+        
         var coeffs_0 = coeffs[coeffs_off];
         var coeff_1 = coeffs[coeffs_off + 1];
         var coeffs_2 = coeffs[coeffs_off + 2];
         var coeff_3 = coeffs[coeffs_off + 3];
-        
-        
-        
+
+
+
         a1 = coeffs_0 + coeffs_2;
         b1 = coeffs_0 - coeffs_2;
 
-        temp1 = (coeff_1 * sinpi8sqrt2/* + rounding */) >> 16;
-        temp2 = coeff_3 + ((coeff_3 * cospi8sqrt2minus1/* + rounding */) >> 16);
+        temp1 = (coeff_1 * sinpi8sqrt2) >> 16;
+        temp2 = coeff_3 + ((coeff_3 * cospi8sqrt2minus1) >> 16);
         c1 = temp1 - temp2;
 
         temp1 = coeff_1 +
-                ((coeff_1 * cospi8sqrt2minus1/* + rounding */) >> 16);
-        temp2 = (coeff_3 * sinpi8sqrt2/* + rounding */) >> 16;
+                ((coeff_1 * cospi8sqrt2minus1) >> 16);
+        temp2 = (coeff_3 * sinpi8sqrt2) >> 16;
         d1 = temp1 + temp2;
+        
+        
+        
+        r0 = CLAMP_255(predict[predict_off] + ((a1 + d1 + 4) >> 3));
+        r1 = CLAMP_255(predict[predict_off + 1] + ((b1 + c1 + 4) >> 3));
+        r2 = CLAMP_255(predict[predict_off + 2] + ((b1 - c1 + 4) >> 3));
+        r3 = CLAMP_255(predict[predict_off + 3] + ((a1 - d1 + 4) >> 3));
+        recon_32[recon_off >> 2] = r0 | r1 << 8 | r2 << 16 | r3 << 24;
 
-        recon[recon_off + 0] = CLAMP_255(predict[predict_off] + ((a1 + d1 + 4) >> 3));//CLAMP_255
-        recon[recon_off + 3] = CLAMP_255(predict[predict_off + 3] + ((a1 - d1 + 4) >> 3));//CLAMP_255
-        recon[recon_off + 1] = CLAMP_255(predict[predict_off + 1] + ((b1 + c1 + 4) >> 3));//CLAMP_255
-        recon[recon_off + 2] = CLAMP_255(predict[predict_off + 2] + ((b1 - c1 + 4) >> 3));//CLAMP_255
+
 
         coeffs_off += 4;
         recon_off += stride;

@@ -6,7 +6,6 @@ function intra_prediction_down_copy(recon, recon_off, stride) {
      * above-right of subblocks 7, 11, and 15
      */
 
-    var tmp = 0;
     var copy = (recon);
     var copy_off = (recon_off + 16 - stride);//*(void *)
 

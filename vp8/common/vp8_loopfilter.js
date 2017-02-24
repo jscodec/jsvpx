@@ -161,8 +161,7 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
             }
 
             //vp8_loop_filter_bhs_c
-            if (row)
-            {
+            if (row > 0) {
                 //vp8_loop_filter_simple_horizontal_edge_c
                 filter_mb_h_edge(y, y_off, stride, edge_limit + 2,
                         interior_limit, hev_threshold, 2);

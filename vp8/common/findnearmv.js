@@ -1,14 +1,6 @@
 'use strict';
 var MotionVector = require('./mv.js');
 
-var CURRENT_FRAME = 0;
-
-var CNT_BEST = 0;
-var CNT_ZEROZERO = 0;
-var CNT_NEAREST = 1;
-var CNT_NEAR = 2;
-var CNT_SPLITMV = 3;
-
 var DC_PRED = 0;
 var V_PRED = 1;
 var H_PRED = 2; 

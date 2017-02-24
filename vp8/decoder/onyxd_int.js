@@ -13,12 +13,6 @@ var mb_info = blockd.MODE_INFO;
 var vpx_image = require('../../vpx/vpx_image.js');
 var vpx_image_t = vpx_image.vpx_image_t;
 
-var MotionVector = require('../common/mv.js');
-var detokenize = require('./detokenize');
-var decode_mb_tokens = detokenize.decode_mb_tokens;
-var reset_mb_context = detokenize.reset_mb_context;
-
-
 
 var CURRENT_FRAME = 0;
 var LAST_FRAME = 1;
@@ -116,7 +110,7 @@ class VP8D_COMP {
         this.mb_info_rows = null; //mb_info**
         this.mb_info_rows_off = 0;
         this.above_token_entropy_ctx = null;
-        this.above_token_entropy_ctx_object = (token_entropy_ctx_t); //*
+        //this.above_token_entropy_ctx_object = (token_entropy_ctx_t); //*
 
         this.common = new VP8_COMMON();
         this.boolDecoder = new BoolDecoder();
@@ -220,7 +214,7 @@ class VP8D_COMP {
 
 
         this.mb_info_rows = this.mb_info_storage;
-        this.mb_info_rows_off = this.mb_info_rows_storage_off;//todo: + 1;
+        this.mb_info_rows_off = this.mb_info_rows_storage_off;
     }
 
 

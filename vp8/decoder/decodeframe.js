@@ -483,9 +483,7 @@ function reset_row_context(left) {
         left[i] = 0;
 }
 
-var token_entropy_ctx_t = function () {
-    return new Int32Array(9);
-};
+
 
 
 function setup_token_decoder( hdr, data, ptr, sz){
@@ -820,7 +818,7 @@ function vp8_decode_frame(data, decoder) {
 
 
     if (pc.refresh_entropy_probs === 0) {
-        //decoder.common.saved_entropy.copyValues(decoder.common.entropy_hdr);
+
         copy_entropy_values(pc.saved_entropy, pc.entropy_hdr);
         decoder.saved_entropy_valid = 1;
   
@@ -936,7 +934,7 @@ function vp8_decode_frame(data, decoder) {
 
     var above = decoder.above_token_entropy_ctx;
     for (var col = 0; col < decoder.mb_cols; ++col)
-        memset(above[col], 0, 0, above[col].length);//cols * *sizeof(above) 
+        memset(above[col], 0, 0, above[col].length);
 
     decode_mb_rows(decoder);
 
