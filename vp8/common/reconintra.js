@@ -342,41 +342,33 @@ function predict_hd_4x4(predict, predict_off, stride) {
     var left2 = left[left_off + stride2]|0;
     var left3 = left[left_off + stride3]|0;
     
-    predict[predict_off] = pred0 =
-            (left0 + abovem1 + 1) >> 1;
-    predict[predict_off + 1] = pred1 =
-            (left0 + 2 * abovem1 + above0 + 2) >> 2;
-    predict[predict_off + 2] = pred2 =
-            (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
-    predict[predict_off + 3] = pred3 =
-            (above0 + (above1 << 1) + above2 + 2) >> 2;
+    var pred_32 = predict.data_32;
+    
+    pred0 = (left0 + abovem1 + 1) >> 1;
+    pred1 = (left0 + 2 * abovem1 + above0 + 2) >> 2;
+    pred2 = (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
+    pred3 = (above0 + (above1 << 1) + above2 + 2) >> 2;
+    pred_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
     predict_off += stride;
 
-    predict[predict_off] = pred4 =
-            (left1 + left0 + 1) >> 1;
-    predict[predict_off + 1] = pred5 =
-            (left1 + 2 * left0 + abovem1 + 2) >> 2;
-    predict[predict_off + 2] = pred0;
-    predict[predict_off + 3] = pred1;
+    pred4 = (left1 + left0 + 1) >> 1;
+    pred5 = (left1 + 2 * left0 + abovem1 + 2) >> 2;
+    pred_32[predict_off >> 2] = pred4 | (pred5 << 8) | (pred0 << 16) | (pred1 << 24);
     predict_off += stride;
 
   
-    predict[predict_off] = pred6 =
-            (left2 + left1 + 1) >> 1;
-    predict[predict_off + 1] = pred7 =
-            (left2 + 2 * left1 + left0 + 2) >> 2;
-    predict[predict_off + 2] = pred4;
-    predict[predict_off + 3] = pred5;
+    pred6 = (left2 + left1 + 1) >> 1;
+    pred7 = (left2 + 2 * left1 + left0 + 2) >> 2;
+    pred_32[predict_off >> 2] = pred6 | (pred7 << 8) | (pred4 << 16) | (pred5 << 24);
     predict_off += stride;
 
     
     
-    predict[predict_off] = pred8 =
-            (left3 + left2 + 1) >> 1;
-    predict[predict_off + 1] = pred9 =
-            (left3 + 2 * left2 + left1 + 2) >> 2;
-    predict[predict_off + 2] = pred6;
-    predict[predict_off + 3] = pred7;
+    pred8 = (left3 + left2 + 1) >> 1;
+    pred9 = (left3 + 2 * left2 + left1 + 2) >> 2;
+
+    
+    pred_32[predict_off >> 2] = pred8 | (pred9 << 8) | (pred6 << 16) | (pred7 << 24);
 }
 
 
