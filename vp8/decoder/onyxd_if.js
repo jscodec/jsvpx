@@ -19,9 +19,6 @@ function vp8_dixie_release_ref_frame(rcimg) {
     
 }
 
-
-
-
 function vp8_dixie_ref_frame(rcimg) {
     
     rcimg.ref_cnt++;

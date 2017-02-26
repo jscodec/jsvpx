@@ -14,7 +14,6 @@ class dequant_factors {
             new Int16Array([0, 0]), // UV
             new Int16Array([0, 0]) //Y2
         ];
-
     }
 }
 

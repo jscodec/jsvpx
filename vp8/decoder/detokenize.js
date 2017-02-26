@@ -49,11 +49,13 @@ var ENTROPY_NODES = 11;
  * @param {type} mode
  * @returns {null}
  */
+//var context_clear = new Uint32Array(8);
 function vp8_reset_mb_tokens_context(left, above, mode) {
     /* Reset the macroblock context on the left and right. We have to
      * preserve the context of the second order block if this mode
      * would not have updated it.
      */
+    //left.fill(context_clear);
     memset(left, 0, 0, 8);
     memset(above, 0, 0, 8);
 

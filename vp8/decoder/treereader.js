@@ -9,8 +9,7 @@ function vp8_treed_read(r, t, p, p_off) {
     var i = 0;
 
 
-        while ((i = t[ i + vpx_read(r, p[p_off + (i >> 1)])]) > 0) {
-       }
+        while ((i = t[ i + vpx_read(r, p[p_off + (i >> 1)])]) > 0) {}
 
 
 

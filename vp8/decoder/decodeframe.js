@@ -409,6 +409,7 @@ function memset_coeffs(ptr, ptr_off, value, num){
      
 }
 
+var coeff_clear = new Float64Array(200);
 function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coeffs_off) {
 
     var tokens = ctx.tokens[partition];
@@ -431,10 +432,13 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
 
     //memset(coeffs, coeffs_off, 0, 400);
     var copy_dest = coeffs.data_64;
+    copy_dest.set(coeff_clear);
+    /*
     for(var c = 0; c < 200; c++){
         copy_dest[c] = 0;
-    }
+    }*/
     
+   
 
     if (mbmi_cache.mb_skip_coeff === 1) {
         //vp8_reset_mb_tokens_context
@@ -476,8 +480,10 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
 
 }
 
-
+var left_reset = new Int32Array(9);
 function reset_row_context(left) {
+    //console.warn(left.length);
+    
     var i = left.length;
     while (i--)
         left[i] = 0;
@@ -921,20 +927,13 @@ function vp8_decode_frame(data, decoder) {
         length = 4;
     }
 
-
-
-
-
-   
-
-
-
     vp8_decode_mode_mvs(decoder, bc);
 
 
     var above = decoder.above_token_entropy_ctx;
-    for (var col = 0; col < decoder.mb_cols; ++col)
-        memset(above[col], 0, 0, above[col].length);
+    var mb_cols = decoder.mb_cols;
+    for (var col = 0; col < mb_cols; ++col)
+        memset(above[col], 0, 0, 9);
 
     decode_mb_rows(decoder);
 

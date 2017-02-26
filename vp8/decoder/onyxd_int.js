@@ -164,7 +164,7 @@ class VP8D_COMP {
         var mbi_h = 0;
         var i = 0;
         var mbi = mbi_cache;
-        var ptr = 0;
+        
 
         mbi_w = this.mb_cols + 1; /* For left border col */
         mbi_h = this.mb_rows + 1; /* For above border row */
@@ -185,13 +185,11 @@ class VP8D_COMP {
                 this.mb_info_storage[i] = new mb_info();
 
             this.mb_info_storage_off = 0;
-        }
-
-        if (this.mb_info_rows_storage === null) {
+            
             this.mb_info_rows_storage_off = new Uint32Array(mbi_h);
         }
 
-        ptr = 1;
+        var ptr = 1;
 
         for (i = 0; i < mbi_h; i++) {
             this.mb_info_rows_storage_off[i] = ptr;

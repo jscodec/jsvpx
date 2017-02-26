@@ -127,7 +127,8 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
     mbi = ctx.mb_info_rows; //[1 + row];
     mbi_off = ctx.mb_info_rows_off[1 + row] + start_col;
 
-    for (col = start_col; col < start_col + num_cols; col++)
+    var total_cols = start_col + num_cols;
+    for (col = start_col; col < total_cols; col++)
     {
         //var edge_limit = [0], interior_limit = [0], hev_threshold = [0];
         var edge_limit = edge_limit_cache, interior_limit = interior_limit_cache, hev_threshold = hev_threshold_cache;
@@ -210,14 +211,12 @@ function calculate_filter_parameters(ctx,
     filter_level = ctx.common.level;
     //console.warn(mbi);
     
-    if (ctx.segment_hdr.enabled)
+    if (ctx.segment_hdr.enabled === 1)
     {
         if (!ctx.segment_hdr.abs)
-            filter_level +=
-                    ctx.segment_hdr.lf_level[mbi.mbmi.segment_id];
+            filter_level += ctx.segment_hdr.lf_level[mbi.mbmi.segment_id];
         else
-            filter_level =
-                    ctx.segment_hdr.lf_level[mbi.mbmi.segment_id];
+            filter_level = ctx.segment_hdr.lf_level[mbi.mbmi.segment_id];
     }
     
     
