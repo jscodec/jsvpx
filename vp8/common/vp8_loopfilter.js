@@ -303,17 +303,13 @@ function saturate_uint8(x) {
     return min(max(x, 0), 255);
 }
 
-function high_edge_variance(pixels,  pixels_off, stride, hev_threshold) {
-//var p3 = pixels[pixels_off -4*stride];
-//var p2 = pixels[pixels_off -3*stride];
-var p1 = pixels[pixels_off -2*stride];
-var p0 = pixels[pixels_off -stride];
-var q0 = pixels[pixels_off];
-var q1 = pixels[pixels_off+ stride];
-//var q2 = pixels[pixels_off+ 2*stride];
-//var q3 = pixels[pixels_off+ 3*stride];
+function high_edge_variance(pixels, pixels_off, stride, hev_threshold) {
+    var p1 = pixels[pixels_off - 2 * stride];
+    var p0 = pixels[pixels_off - stride];
+    var q0 = pixels[pixels_off];
+    var q1 = pixels[pixels_off + stride];
 
-    //return ABS(p1 - p0) > hev_threshold || ABS(q1 - q0) > hev_threshold;
+
     return abs(p1 - p0) > hev_threshold || abs(q1 - q0) > hev_threshold;
 }
 

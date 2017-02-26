@@ -6,12 +6,6 @@ var V_PRED = 1;
 var H_PRED = 2; 
 var TM_PRED = 3; 
 var B_PRED = 4; 
-var NEARESTMV = 5;
-var NEARMV = 6;
-var ZEROMV = 7;
-var NEWMV = 8;
-var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
 
 var DC_PRED = 0;
 var V_PRED = 1;

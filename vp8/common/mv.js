@@ -1,41 +1,48 @@
 "use strict";
 
 class MotionVector {
-    
+
     constructor() {
-        var internalStruct = new Int16Array(2);
-        var internalStruct32 = new Uint32Array(internalStruct.buffer);
+        this.internalStruct = new Int16Array(2);
+        this.internalStruct32 = new Uint32Array(this.internalStruct.buffer);
 
-        //this.x = 0;
-        //this.y = 0;
-        
-        Object.defineProperty(this, 'x', {
-            get: function () {
-                return internalStruct[0];
-            },
-            set: function (x) {
-                internalStruct[0] = x;
-            }
-        });
-
-        Object.defineProperty(this, 'y', {
-            get: function () {
-                return internalStruct[1] ;
-            },
-            set: function (y) {
-                internalStruct[1] = y;
-            }
-        });
-        
-        Object.defineProperty(this, 'as_int', {
-            get: function () {
-                return internalStruct32[0];
-            },
-            set: function (as_int) {
-                internalStruct32[0] = as_int;
-            }
-        });
     }
 }
+
+Object.defineProperty(MotionVector.prototype, 'x', {
+    get: function () {
+        return this.internalStruct[0];
+    },
+    set: function (x) {
+        this.internalStruct[0] = x;
+    }
+});
+
+this.x = {
+    get: function () {
+        return this.internalStruct[0];
+    },
+    set: function (x) {
+        this.internalStruct[0] = x;
+    }
+};
+
+Object.defineProperty(MotionVector.prototype, 'y', {
+    get: function () {
+        return this.internalStruct[1];
+    },
+    set: function (y) {
+        this.internalStruct[1] = y;
+    }
+});
+
+Object.defineProperty(MotionVector.prototype, 'as_int', {
+    get: function () {
+        return this.internalStruct32[0];
+    },
+    set: function (as_int) {
+        this.internalStruct32[0] = as_int;
+    }
+});
 
 module.exports = MotionVector;

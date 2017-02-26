@@ -34,10 +34,7 @@ class FRAGMENT_DATA {
 }
 
 
-var SPLITMV_16X8 = 0;
-var SPLITMV_8X16 = 1;
-var SPLITMV_8X8 = 2;
-var SPLITMV_4X4 = 3;
+
        
 /*
  * likely MB_MODE_INFO

@@ -264,14 +264,14 @@ function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
     var stride = img.stride;
     var subpixel_filters = ctx.subpixel_filters;
 
-    
+    var mvs = mbi.bmi.mvs;
     for (b = 0; b < 16; b++) {
         var ymv;
 
         if (mode !== SPLITMV)
             ymv = mbmi_cache.mv;
         else
-            ymv = mbi.bmi.mvs[ +b];
+            ymv = mvs[b];
 
 
         recon_1_block(y, y_off, reference, y_off + reference_offset, stride, //y
@@ -316,28 +316,27 @@ function recon_1_block(output, output_off, reference, reference_off, stride, mv,
     var predict = reference;
     var predict_off = reference_off;
     var mx = 0, my = 0;
-    
+
     if (mv.as_int) {
-        
+
         mx = mv.x & 7;
         my = mv.y & 7;
-        
-        reference_off += ((mv.y >> 3) * stride) + (mv.x >> 3);        
-        
-        if (mx | my) {
-       
-            filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mx, my,
-                filters);    
-        
-            predict = output;
-            predict_off = output_off;
-        } else {
-            predict_off = reference_off;
-            //vp8_copy_mem8x4
-        }
-        
+
+        reference_off += ((mv.y >> 3) * stride) + (mv.x >> 3);
+
+
+
+        filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mx, my,
+                filters);
+
+        predict = output;
+        predict_off = output_off;
+
+
+    } else {
+        predict_off = reference_off;
     }
-     
+
     vp8_short_idct4x4llm_c(output, output_off, predict, predict_off, stride, coeffs, coeffs_off + 16 * b);
 
 }
@@ -370,7 +369,7 @@ function recon_1_edge_block(output, output_off,
         
     }
  
- 
+
     
 
     if (mv_.as_int) {
@@ -380,21 +379,20 @@ function recon_1_edge_block(output, output_off,
 
 
         reference_off += ((mv_.y >> 3) * stride) + (mv_.x >> 3);
-    
-        
-        if (mx | my) {
 
-            filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mx, my,
-filters);
-            
-            predict = output;
-            predict_off = output_off;
-        } else {
-            
-            predict = reference;
-            predict_off = reference_off;
-            
-        }
+
+
+
+        filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mx, my,
+                filters);
+
+        predict = output;
+        predict_off = output_off;
+
+    } else {
+        reference_off += ((mv_.y >> 3) * stride) + (mv_.x >> 3);
+        predict = reference;
+        predict_off = reference_off;
         
     }
     

@@ -180,7 +180,6 @@ function filter_mb_edge(pixels, pixels_off, stride) {
     var q0 = pixels[pixels_off];
     var q1 = pixels[pixels_off + stride];
     var q2 = pixels[pixels_off + stride2];
-//var q3 = pixels[pixels_off+ 3*stride];
     var w = 0, a = 0;
 
     w = saturate_int8(saturate_int8(p1 - q1) + 3 * (q0 - p0));
