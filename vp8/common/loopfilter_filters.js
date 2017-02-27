@@ -7,15 +7,18 @@ var max = Math.max;
 function saturate_int8(x) {
 
     return min(max(x, -128), 127);
+
 }
 
 function saturate_uint8(x) {
     return min(max(x, 0), 255);
+    
 }
 
 //possible vp8_simple_filter
 function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
-    var p1 = pixels[pixels_off - 2 * stride];
+    var stride2 = 2 * stride;
+    var p1 = pixels[pixels_off - stride2];
     var p0 = pixels[pixels_off - stride];
     var q0 = pixels[pixels_off];
     var q1 = pixels[pixels_off + stride];
@@ -31,8 +34,24 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
 
     a = saturate_int8(a);
 
-    f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
-    f2 = ((a + 3 > 127) ? 127 : a + 3) >> 3;
+
+    
+
+    //f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
+    if((a + 4) > 127){
+        f1 = 15;
+    }else{
+        f1 = (a + 4) >> 3;
+    }
+    
+    
+    //f2 = ((a + 3 > 127) ? 127 : a + 3) >> 3;
+    if((a + 4) > 127){
+        f2 = 15;
+    }else{
+        f2 = (a + 3) >> 3;
+    }
+    
 
     p0 = saturate_uint8(p0 + f2);
     q0 = saturate_uint8(q0 - f1);
@@ -47,7 +66,7 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
         q1 = saturate_uint8(q1 - a);
     }
 
-    pixels[pixels_off - 2 * stride] = p1;
+    pixels[pixels_off - stride2] = p1;
     pixels[pixels_off - stride] = p0;
     pixels[pixels_off] = q0;
     pixels[pixels_off + stride] = q1;
@@ -149,6 +168,7 @@ function filter_mb_v_edge(src,
 
 
 function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
+    
     var p3 = pixels[pixels_off - 4 * stride];
     var p2 = pixels[pixels_off - 3 * stride];
     var p1 = pixels[pixels_off - 2 * stride];
@@ -241,9 +261,8 @@ function filter_subblock_v_edge(src, src_off, stride, edge_limit, interior_limit
     for (i = 0; i < limit; i++) {
 
         if (normal_threshold(src, src_off, 1, edge_limit, interior_limit))
-            //  console.warn(i + ":" +  edge_limit + ":" + interior_limit + ":" + hev_threshold);
-            vp8_filter(src, src_off, 1,
-                    high_edge_variance(src, src_off, 1, hev_threshold));
+            
+            vp8_filter(src, src_off, 1, high_edge_variance(src, src_off, 1, hev_threshold));
 
 
         src_off += stride;

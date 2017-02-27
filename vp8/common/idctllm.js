@@ -164,6 +164,8 @@ function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, 
     coeffs_off = tmp_off;
     var recon_32 = recon.data_32;
     var r0, r1, r2, r3;
+    var p0, p1, p2, p3;
+    var p32;
     
     for (i = 0; i < 4; i++) {
 
@@ -185,24 +187,15 @@ function vp8_short_idct4x4llm_c(recon, recon_off, predict, predict_off, stride, 
         temp1 = coeff_1 + ((coeff_1 * cospi8sqrt2minus1) >> 16);
         temp2 = (coeff_3 * sinpi8sqrt2) >> 16;
         d1 = temp1 + temp2;
-        
-        /*
-        if (predict_off % 4 === 0) {
-            var test = predict.data_32[predict_off >> 2];
-            var p0 = test & 0xFF;
-            var p1 = (test >> 8) & 0xFF;
-            var p2 = (test >> 16) & 0xFF;
-            var p3 = (test >> 24) & 0xFF;
-            
-        }else{
-        */
-            var p0 = predict[predict_off];
-            var p1 = predict[predict_off + 1];
-            var p2 = predict[predict_off + 2];
-            var p3 = predict[predict_off + 3];
-        //}
-        
-        
+
+
+        p0 = predict[predict_off];
+        p1 = predict[predict_off + 1];
+        p2 = predict[predict_off + 2];
+        p3 = predict[predict_off + 3];
+
+
+
         r0 = CLAMP_255(p0 + ((a1 + d1 + 4) >> 3));
         r1 = CLAMP_255(p1 + ((b1 + c1 + 4) >> 3));
         r2 = CLAMP_255(p2 + ((b1 - c1 + 4) >> 3));

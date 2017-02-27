@@ -18,15 +18,6 @@ Object.defineProperty(MotionVector.prototype, 'x', {
     }
 });
 
-this.x = {
-    get: function () {
-        return this.internalStruct[0];
-    },
-    set: function (x) {
-        this.internalStruct[0] = x;
-    }
-};
-
 Object.defineProperty(MotionVector.prototype, 'y', {
     get: function () {
         return this.internalStruct[1];

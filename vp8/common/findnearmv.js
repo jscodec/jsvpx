@@ -12,22 +12,12 @@ var V_PRED = 1;
 var H_PRED = 2;
 var TM_PRED = 3;
 var B_PRED = 4;
-var NEARESTMV = 5;
-var NEARMV = 6;
-var ZEROMV = 7;
-var NEWMV = 8;
-var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
+
 
 var B_DC_PRED = 0; /* average of above and left pixels */
 var B_TM_PRED = 1;
 var B_VE_PRED = 2; /* vertical prediction */
 var B_HE_PRED = 3; /* horizontal prediction */
-
-
-var this_mv_1 = new MotionVector();
-
-var this_mv_2 = new MotionVector();
 
 
 function mv_bias(mb, sign_bias, ref_frame, mv) {

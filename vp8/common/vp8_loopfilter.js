@@ -106,6 +106,7 @@ function vp8_loop_filter_row_simple(ctx, row) {
 var edge_limit_cache = new Uint8Array([0]), interior_limit_cache = new Uint8Array([0]), hev_threshold_cache = new Uint8Array([0]);
 
 function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
+   
     var y = 0, u = 0, v = 0;
     var y_off = 0, u_off = 0, v_off = 0;
     var stride = 0, uv_stride = 0;
@@ -121,14 +122,14 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
     y_off = currentImg.planes_off[PLANE_Y];
     u_off = currentImg.planes_off[PLANE_U];
     v_off = currentImg.planes_off[PLANE_V];
-    y_off += (stride * row + start_col) * 16;
-    u_off += (uv_stride * row + start_col) * 8;
-    v_off += (uv_stride * row + start_col) * 8;
+    y_off += (stride * row ) * 16;
+    u_off += (uv_stride * row) * 8;
+    v_off += (uv_stride * row ) * 8;
     mbi = ctx.mb_info_rows; //[1 + row];
-    mbi_off = ctx.mb_info_rows_off[1 + row] + start_col;
+    mbi_off = ctx.mb_info_rows_off[1 + row];
 
-    var total_cols = start_col + num_cols;
-    for (col = start_col; col < total_cols; col++)
+
+    for (col = 0; col < num_cols; col++)
     {
         //var edge_limit = [0], interior_limit = [0], hev_threshold = [0];
         var edge_limit = edge_limit_cache, interior_limit = interior_limit_cache, hev_threshold = hev_threshold_cache;

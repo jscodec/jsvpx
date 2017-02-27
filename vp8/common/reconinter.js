@@ -5,7 +5,6 @@ var filter = require('../common/filter.js');
 var filter_block2d = filter.filter_block2d;
 
 var SPLITMV = 9;
-var MB_MODE_COUNT = 10;
 
 var idctllm = require('../common/idctllm.js');
 var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
@@ -76,7 +75,7 @@ function predict_inter_emulated_edge(ctx,
         if (mode !== SPLITMV)
             ymv = mbi.mbmi.mv;
         else
-            ymv = mvs[ b];
+            ymv = mvs[b];
 
         recon_1_edge_block(output, output_off, emul_block, emul_block_off, reference, reference_off, img.stride,
                 ymv, ctx.subpixel_filters,
@@ -147,7 +146,8 @@ function build_4x4uvmvs(mbi, full_pixel) {
 
             var b = (i << 3) + (j  << 1);
             var chroma_ptr = (i << 1) + j;
-
+            var chroma_mv_cache = chroma_mv[chroma_ptr];
+            
             var temp = 0;
 
             
@@ -162,7 +162,7 @@ function build_4x4uvmvs(mbi, full_pixel) {
             else
                 temp += 4;
 
-            chroma_mv[chroma_ptr].x = (temp / 8 ) | 0;
+            chroma_mv_cache.x = (temp / 8 ) | 0;
 
             temp = mvs[b].y +
                     mvs[b + 1].y +
@@ -174,10 +174,10 @@ function build_4x4uvmvs(mbi, full_pixel) {
             else
                 temp += 4;
 
-            chroma_mv[chroma_ptr].y = (temp / 8) | 0;
+            chroma_mv_cache.y = (temp / 8) | 0;
 
             if (full_pixel === 1) {
-                chroma_mv[chroma_ptr].as_int &= 0xFFF8FFF8;
+                chroma_mv_cache.as_int &= 0xFFF8FFF8;
 
             }
 
@@ -192,8 +192,7 @@ function build_4x4uvmvs(mbi, full_pixel) {
 function build_mc_border(dst, dst_off, src, src_off, stride, x, y, b_w, b_h, w, h) {
     var ref_row = 0;
     var ref_row_off = 0;
-
-
+    
     /* Get a pointer to the start of the real data for this row */
     ref_row = src;
     ref_row_off = src_off - x - y * stride;
@@ -411,7 +410,7 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
 
     uvmv.as_int = mbmi_cache.mv.as_int;
 
-    if (mbi.mbmi.need_mc_border) {
+    if (mbi.mbmi.need_mc_border === 1) {
         var x = uvmv.x;
         var y = uvmv.y;
         uvmv.x = (x + 1 + ((x >> 31) << 1));
@@ -465,7 +464,7 @@ function vp8_build_inter_predictors_mb(ctx,
     }
 
 
-    if (mbi.mbmi.need_mc_border)
+    if (mbi.mbmi.need_mc_border === 1)
         predict_inter_emulated_edge(ctx, img, coeffs, coeffs_off, mbi, mb_col, mb_row);
 
     else
