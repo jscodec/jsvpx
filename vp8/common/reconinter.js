@@ -177,7 +177,7 @@ function build_4x4uvmvs(mbi, full_pixel) {
             chroma_mv_cache.y = (temp / 8) | 0;
 
             if (full_pixel === 1) {
-                chroma_mv_cache.as_int &= 0xFFF8FFF8;
+                chroma_mv_cache.as_int[0] &= 0xFFF8FFF8;
 
             }
 
@@ -316,7 +316,7 @@ function recon_1_block(output, output_off, reference, reference_off, stride, mv,
     var predict_off = reference_off;
     var mx = 0, my = 0;
 
-    if (mv.as_int) {
+    if (mv.as_int[0]) {
 
         mx = mv.x & 7;
         my = mv.y & 7;
@@ -371,7 +371,7 @@ function recon_1_edge_block(output, output_off,
 
     
 
-    if (mv_.as_int) {
+    if (mv_.as_int[0]) {
 
         mx = mv_.x & 7;
         my = mv_.y & 7;
@@ -408,7 +408,7 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
 
     var mbmi_cache = mbi.mbmi;
 
-    uvmv.as_int = mbmi_cache.mv.as_int;
+    uvmv.as_int[0] = mbmi_cache.mv.as_int[0];
 
     if (mbi.mbmi.need_mc_border === 1) {
         var x = uvmv.x;
@@ -424,13 +424,13 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
     }
 
     if (full_pixel) {
-        uvmv.as_int &= 0xFFF8FFF8;
+        uvmv.as_int[0] &= 0xFFF8FFF8;
     }
 
-    chroma_mv[0].as_int =
-            chroma_mv[1].as_int =
-            chroma_mv[2].as_int =
-            chroma_mv[3].as_int = uvmv.as_int;
+    chroma_mv[0].as_int[0] =
+            chroma_mv[1].as_int[0] =
+            chroma_mv[2].as_int[0] =
+            chroma_mv[3].as_int[0] = uvmv.as_int[0];
 
 }
 

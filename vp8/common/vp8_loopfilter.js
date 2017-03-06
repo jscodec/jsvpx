@@ -57,9 +57,9 @@ function vp8_loop_filter_row_simple(ctx, row) {
     for (col = 0; col <  ctx.mb_cols; col++) {
         
 
-        /* TODO: only need to recalculate every MB if segmentation is
-         * enabled.
-         */
+        // TODO: only need to recalculate every MB if segmentation is
+        //  enabled.
+         
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                                     interior_limit, hev_threshold);
 
@@ -80,11 +80,11 @@ function vp8_loop_filter_row_simple(ctx, row) {
             {
                 //vp8_loop_filter_simple_bv vp8_loop_filter_bvs_c
                 vp8_loop_filter_bvs_c(y, y_off, stride, b_limit);
-                /*
-                filter_v_edge_simple(y, y_off + 4, stride, b_limit);
-                filter_v_edge_simple(y, y_off + 8, stride, b_limit);
-                filter_v_edge_simple(y, y_off + 12, stride, b_limit);
-                */
+                
+                //filter_v_edge_simple(y, y_off + 4, stride, b_limit);
+                //filter_v_edge_simple(y, y_off + 8, stride, b_limit);
+                //filter_v_edge_simple(y, y_off + 12, stride, b_limit);
+                
             }
 
             if (row > 0)
@@ -133,9 +133,9 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
     {
         //var edge_limit = [0], interior_limit = [0], hev_threshold = [0];
         var edge_limit = edge_limit_cache, interior_limit = interior_limit_cache, hev_threshold = hev_threshold_cache;
-        /* TODO: only need to recalculate every MB if segmentation is
-         * enabled.
-         */
+        // TODO: only need to recalculate every MB if segmentation is
+        //  enabled.
+         
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                 interior_limit, hev_threshold);
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
@@ -196,6 +196,7 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
         v_off += 8;
         mbi_off++;
     }
+    
 }
 
 function calculate_filter_parameters(ctx,

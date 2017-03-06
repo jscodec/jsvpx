@@ -4,7 +4,7 @@ class MotionVector {
 
     constructor() {
         this.internalStruct = new Int16Array(2);
-        this.internalStruct32 = new Uint32Array(this.internalStruct.buffer);
+        this.as_int = new Uint32Array(this.internalStruct.buffer);
 
     }
 }
@@ -24,15 +24,6 @@ Object.defineProperty(MotionVector.prototype, 'y', {
     },
     set: function (y) {
         this.internalStruct[1] = y;
-    }
-});
-
-Object.defineProperty(MotionVector.prototype, 'as_int', {
-    get: function () {
-        return this.internalStruct32[0];
-    },
-    set: function (as_int) {
-        this.internalStruct32[0] = as_int;
     }
 });
 

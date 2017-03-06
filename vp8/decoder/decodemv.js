@@ -224,9 +224,9 @@ function decode_split_mv(mi, left_mb, above_mb, hdr, best_mv, bool) {
 
 
     do {
-        blockmv.as_int = 0;
-        left_mv.as_int = 0;
-        above_mv.as_int = 0;
+        blockmv.as_int[0] = 0;
+        left_mv.as_int[0] = 0;
+        above_mv.as_int[0] = 0;
         
         var subblock_mode;//='prediction_mode'
 
@@ -239,49 +239,49 @@ function decode_split_mv(mi, left_mb, above_mb, hdr, best_mv, bool) {
         /* Decode the next MV */
         if (!(k & 3)) {
             if (left_mb.mbmi.y_mode === SPLITMV){
-                left_mv.as_int = left_mb.bmi.mvs[k + 3].as_int;
+                left_mv.as_int[0] = left_mb.bmi.mvs[k + 3].as_int[0];
             }else{
-                left_mv.as_int = left_mb.mbmi.mv.as_int;
+                left_mv.as_int[0] = left_mb.mbmi.mv.as_int[0];
             }
 
         } else {
-            left_mv.as_int = mi.bmi.mvs[k - 1].as_int;
+            left_mv.as_int[0] = mi.bmi.mvs[k - 1].as_int[0];
         }
         
         
         if (!(k >> 2)) {
             if (above_mb.mbmi.y_mode === SPLITMV) {
-                above_mv.as_int = above_mb.bmi.mvs[k + 12].as_int;
+                above_mv.as_int[0] = above_mb.bmi.mvs[k + 12].as_int[0];
             } else {
-                above_mv.as_int = above_mb.mbmi.mv.as_int;
+                above_mv.as_int[0] = above_mb.mbmi.mv.as_int[0];
             }
 
         } else {
-            above_mv.as_int = mi.bmi.mvs[k - 4].as_int;
+            above_mv.as_int[0] = mi.bmi.mvs[k - 4].as_int[0];
         }
         
-        prob = get_sub_mv_ref_prob(left_mv.as_int, above_mv.as_int);
+        prob = get_sub_mv_ref_prob(left_mv.as_int[0], above_mv.as_int[0]);
         
         if (vpx_read(bool, prob[0])) {
             if (vpx_read(bool, prob[1])) {
-                //blockmv.as_int = 0;
+                //blockmv.as_int[0] = 0;
                 if (vpx_read(bool, prob[2])) {
                     read_mv(bool, blockmv, hdr.mv_probs);
                     blockmv.x = (blockmv.x + best_mv.x);
                     blockmv.y = (blockmv.y + best_mv.y);
                 }
             } else {
-                blockmv.as_int = above_mv.as_int;
+                blockmv.as_int[0] = above_mv.as_int[0];
             }
         } else {
-            blockmv.as_int = left_mv.as_int;
+            blockmv.as_int[0] = left_mv.as_int[0];
         }
         
         var fill_count = mbsplit_fill_count[s];
         /* Fill the MV's for this partition */
         for (; k < 16; k++)
             if (j === partition[k]) {
-                mvs[k].as_int = blockmv.as_int;
+                mvs[k].as_int[0] = blockmv.as_int[0];
 
             }
 
@@ -427,7 +427,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         var cntx_off = 0;
 
         /* Zero accumulators */
-        nmv[0].as_int = nmv[1].as_int = nmv[2].as_int = 0;
+        nmv[0].as_int[0] = nmv[1].as_int[0] = nmv[2].as_int[0] = 0;
         cnt[0] = cnt[1] = cnt[2] = cnt[3] = 0;
 
         
@@ -435,8 +435,8 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         var aboveleft_ = mi[aboveleft_off];
         /* Process above */
         if (above.mbmi.ref_frame !== INTRA_FRAME) {
-            if (above.mbmi.mv.as_int) {
-                nmv[++mv_off].as_int = above.mbmi.mv.as_int;
+            if (above.mbmi.mv.as_int[0]) {
+                nmv[++mv_off].as_int[0] = above.mbmi.mv.as_int[0];
                 mv_bias(above, sign_bias, this_.mbmi.ref_frame, nmv[mv_off]);
                 ++cntx_off;
 
@@ -446,14 +446,14 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
         /* Process left */
         if (left_.mbmi.ref_frame !== INTRA_FRAME) {
-            if (left_.mbmi.mv.as_int) {
+            if (left_.mbmi.mv.as_int[0]) {
                 var this_mv = this_mv_tmp;
 
-                this_mv.as_int = left_.mbmi.mv.as_int;
+                this_mv.as_int[0] = left_.mbmi.mv.as_int[0];
                 mv_bias(left_, sign_bias, this_.mbmi.ref_frame, this_mv);
 
-                if (this_mv.as_int !== nmv[mv_off].as_int) {
-                    nmv[++mv_off].as_int = this_mv.as_int;
+                if (this_mv.as_int[0] !== nmv[mv_off].as_int[0]) {
+                    nmv[++mv_off].as_int[0] = this_mv.as_int[0];
                     ++cntx_off;
                 }
                 cntx[cntx_off] += 2;
@@ -464,15 +464,15 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         /* Process above left */
         if (aboveleft_.mbmi.ref_frame !== INTRA_FRAME) {
 
-            if (aboveleft_.mbmi.mv.as_int) {
+            if (aboveleft_.mbmi.mv.as_int[0]) {
                 var this_mv = this_mv_tmp;
 
-                this_mv.as_int = aboveleft_.mbmi.mv.as_int;
+                this_mv.as_int[0] = aboveleft_.mbmi.mv.as_int[0];
                 mv_bias(aboveleft_, sign_bias, this_.mbmi.ref_frame,
                         this_mv);
 
-                if (this_mv.as_int !== nmv[mv_off].as_int) {
-                    nmv[(++mv_off)].as_int = this_mv.as_int;
+                if (this_mv.as_int[0] !== nmv[mv_off].as_int[0]) {
+                    nmv[(++mv_off)].as_int[0] = this_mv.as_int[0];
                     ++cntx_off;
                 }
 
@@ -484,7 +484,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         /* If we have three distinct MV's ... */
         if (cnt[CNT_SPLITMV]) {
             /* See if above-left MV can be merged with NEAREST */
-            if (nmv[mv_off].as_int === near_mvs[CNT_NEAREST].as_int)//.raw
+            if (nmv[mv_off].as_int[0] === near_mvs[CNT_NEAREST].as_int[0])//.raw
                 cnt[CNT_NEAREST] += 1;
         }
 
@@ -498,9 +498,9 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
             tmp = cnt[CNT_NEAREST];
             cnt[CNT_NEAREST] = cnt[CNT_NEAR];
             cnt[CNT_NEAR] = tmp;
-            tmp = near_mvs[CNT_NEAREST].as_int;
-            near_mvs[CNT_NEAREST].as_int = near_mvs[CNT_NEAR].as_int;
-            near_mvs[CNT_NEAR].as_int = tmp;
+            tmp = near_mvs[CNT_NEAREST].as_int[0];
+            near_mvs[CNT_NEAREST].as_int[0] = near_mvs[CNT_NEAR].as_int[0];
+            near_mvs[CNT_NEAR].as_int[0] = tmp;
         }
         
         var near_index;
@@ -508,7 +508,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
          * storage shares the same address as near_mvs[CNT_ZEROZERO].
          */
         if (cnt[CNT_NEAREST] >= cnt[CNT_BEST]) {
-            near_mvs[CNT_BEST].as_int = near_mvs[CNT_NEAREST].as_int;
+            near_mvs[CNT_BEST].as_int[0] = near_mvs[CNT_NEAREST].as_int[0];
             //near_mvs[CNT_BEST].y = near_mvs[CNT_NEAREST].y;
         }
         
@@ -536,10 +536,10 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         
                         
                         //Reset, dont redeclare
-                        chroma_mv[0].as_int = 0;
-                        chroma_mv[1].as_int = 0;
-                        chroma_mv[2].as_int = 0;
-                        chroma_mv[3].as_int = 0;
+                        chroma_mv[0].as_int[0] = 0;
+                        chroma_mv[1].as_int[0] = 0;
+                        chroma_mv[2].as_int[0] = 0;
+                        chroma_mv[3].as_int[0] = 0;
                
 
                         //clamped_best_mv = clamp_mv(near_mvs[BEST], bounds);
@@ -549,7 +549,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         
                         
                         decode_split_mv(this_, left_, above, hdr, clamped_best_mv, bool);//&clamped_best_mv
-                        this_.mbmi.mv.as_int = this_.bmi.mvs[15].as_int;
+                        this_.mbmi.mv.as_int[0] = this_.bmi.mvs[15].as_int[0];
        
                         var this_mvs = this_.bmi.mvs;
                         for (b = 0; b < 16; b++) {
@@ -595,20 +595,20 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                     }
                 } else {
                     //nearmv
-                    this_.mbmi.mv.as_int = near_mvs[NEAR].as_int;
+                    this_.mbmi.mv.as_int[0] = near_mvs[NEAR].as_int[0];
                     vp8_clamp_mv2(this_.mbmi.mv, bounds);
                     this_.mbmi.y_mode = NEARMV;
                 }
             } else {
                 this_.mbmi.y_mode = NEARESTMV;
-                this_.mbmi.mv.as_int = near_mvs[NEAREST].as_int;
+                this_.mbmi.mv.as_int[0] = near_mvs[NEAREST].as_int[0];
                 vp8_clamp_mv2(this_.mbmi.mv, bounds);
 
                 
             }
         } else {
             this_.mbmi.y_mode = ZEROMV;
-            this_.mbmi.mv.as_int = 0; 
+            this_.mbmi.mv.as_int[0] = 0; 
         }
         
         

@@ -350,7 +350,7 @@ function filter_block(return_off,
 
     //reference_off += ((mv_.y >> 3) * stride) + (mv_.x >> 3);
 
-    if (mv_.as_int)
+    if (mv_.as_int[0])
     {
         filter_block2d(output, output_off, stride, reference, reference_off, stride, 4, 4, mv_.x & 7, mv_.y & 7,
                 filters);
