@@ -5,11 +5,12 @@
         <title>Browser Vp8 Validation Tests</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+        <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.1.1.css">
     </head>
     <body>
-        <pre id="output" >TODO write content</pre>
-
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script src="https://code.jquery.com/qunit/qunit-2.1.1.js"></script>
         <script src="../node_modules/jsivf/builds/jsivf.js"></script>
         <script src="../node_modules/js-md5/build/md5.min.js"></script>
         <script src="../builds/jsvpx.js"></script>
@@ -32,13 +33,13 @@
 
             testVectorRequest.onload = function (event) {
 
-                runTest(testVectorRequest.response);
+                runTest(testVectorRequest.response, vector);
 
             };
 
             testVectorRequest.send(null);
 
-            function runTest(buffer) {
+            function runTest(buffer, vector) {
                 var demuxer = new JsIvf();
 
                 demuxer.receiveBuffer(buffer);
@@ -87,21 +88,37 @@
                         }
 
 
-                        outData += mainHash.hex() + "  " + 'basename here' + "-";
+                        outData += mainHash.hex() + "  " + vector.split('.')[0] + "-";
                         outData += testImg.d_w + "x" + testImg.d_h;
-                        outData += "-" + pad(i, 4);
+                        outData += "-" + pad((i + 1), 4);
                         outData += ".i420";
                         outData += "\n";
 
                     }
-                    output.innerHTML = outData;
+
+
                 }
+                var validationRecordRequest = new XMLHttpRequest();
+                validationRecordRequest.open("GET", vectorFolder + vector + '.md5', true);
+                validationRecordRequest.responseType = "text";
+
+                validationRecordRequest.onload = function (event) {
+                    //output.innerHTML = outData;
+                    var validData = validationRecordRequest.response;
+                    console.warn(outData);
+                    console.warn(validData);
+                    QUnit.test(vector, function (assert) {
+                        assert.strictEqual(outData , validData, "Md5 Vector Comparison");
+                    });
+                };
+
+                validationRecordRequest.send(null);
+
 
             }
 
-            function validateTest() {
+    
 
-            }
 
         </script>
 
