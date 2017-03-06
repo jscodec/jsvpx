@@ -3,28 +3,18 @@
 class MotionVector {
 
     constructor() {
-        this.internalStruct = new Int16Array(2);
-        this.as_int = new Uint32Array(this.internalStruct.buffer);
-
+        this.as_row_col = new Int16Array(2);
+        this.as_int = new Uint32Array(this.as_row_col.buffer);
+    }
+    
+    static create(){
+        var as_row_col = new Int16Array(2);
+        var as_int = new Uint32Array(as_row_col.buffer);
+        return {
+            'as_row_col' : as_row_col,
+            'as_int' : as_int
+        };
     }
 }
-
-Object.defineProperty(MotionVector.prototype, 'x', {
-    get: function () {
-        return this.internalStruct[0];
-    },
-    set: function (x) {
-        this.internalStruct[0] = x;
-    }
-});
-
-Object.defineProperty(MotionVector.prototype, 'y', {
-    get: function () {
-        return this.internalStruct[1];
-    },
-    set: function (y) {
-        this.internalStruct[1] = y;
-    }
-});
 
 module.exports = MotionVector;

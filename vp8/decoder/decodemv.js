@@ -166,38 +166,38 @@ function read_kf_modes(pbi, mi, this_off, bool) {
 
 }
 
-var clamped_best_mv_1 = new MotionVector();
+var clamped_best_mv_1 = MotionVector.create();
 
 var LEFT_TOP_MARGIN  = (16 << 3);
 var RIGHT_BOTTOM_MARGIN = (16 << 3);
 
 function vp8_clamp_mv2(mv, bounds) {
-    if (mv.x < (bounds.mb_to_left_edge)) {
-        mv.x = bounds.mb_to_left_edge ;
-    } else if (mv.x > bounds.mb_to_right_edge) {
-        mv.x = bounds.mb_to_right_edge;
+    if (mv.as_row_col[0] < (bounds.mb_to_left_edge)) {
+        mv.as_row_col[0] = bounds.mb_to_left_edge ;
+    } else if (mv.as_row_col[0] > bounds.mb_to_right_edge) {
+        mv.as_row_col[0] = bounds.mb_to_right_edge;
     }
 
-    if (mv.y < (bounds.mb_to_top_edge )) {
-        mv.y = bounds.mb_to_top_edge;
+    if (mv.as_row_col[1] < (bounds.mb_to_top_edge )) {
+        mv.as_row_col[1] = bounds.mb_to_top_edge;
     }
-    else if (mv.y > bounds.mb_to_bottom_edge) {
-        mv.y = bounds.mb_to_bottom_edge ;
+    else if (mv.as_row_col[1] > bounds.mb_to_bottom_edge) {
+        mv.as_row_col[1] = bounds.mb_to_bottom_edge ;
     }
 }
 
-//var mv_clamp_mv = new MotionVector();
+//var mv_clamp_mv = MotionVector.create();
 
 
 function read_mv(bool, mv, mvc) {
-    mv.y = read_mv_component(bool, mvc[0]);
-    mv.x = read_mv_component(bool, mvc[1]);
+    mv.as_row_col[1] = read_mv_component(bool, mvc[0]);
+    mv.as_row_col[0] = read_mv_component(bool, mvc[1]);
 }
 
 
-var blockmv = new MotionVector();
-var left_mv = new MotionVector();
-var above_mv = new MotionVector();
+var blockmv = MotionVector.create();
+var left_mv = MotionVector.create();
+var above_mv = MotionVector.create();
 
 function decode_split_mv(mi, left_mb, above_mb, hdr, best_mv, bool) {
     var partition = 0;
@@ -267,8 +267,8 @@ function decode_split_mv(mi, left_mb, above_mb, hdr, best_mv, bool) {
                 //blockmv.as_int[0] = 0;
                 if (vpx_read(bool, prob[2])) {
                     read_mv(bool, blockmv, hdr.mv_probs);
-                    blockmv.x = (blockmv.x + best_mv.x);
-                    blockmv.y = (blockmv.y + best_mv.y);
+                    blockmv.as_row_col[0] = (blockmv.as_row_col[0] + best_mv.as_row_col[0]);
+                    blockmv.as_row_col[1] = (blockmv.as_row_col[1] + best_mv.as_row_col[1] );
                 }
             } else {
                 blockmv.as_int[0] = above_mv.as_int[0];
@@ -319,8 +319,8 @@ function need_mc_border(mv, l, t, b_w, w, h) {
     var r = 0;
 
     // Get distance to edge for top-left pixel 
-    l += (mv.x >> 3);
-    t += (mv.y >> 3);
+    l += (mv.as_row_col[0] >> 3);
+    t += (mv.as_row_col[1] >> 3);
 
     // Get distance to edge for bottom-right pixel 
     r = w - (l + b_w);
@@ -332,8 +332,8 @@ function need_mc_border(mv, l, t, b_w, w, h) {
 function mv_bias(mb, sign_bias, ref_frame, mv) {
 
     if (sign_bias[mb.mbmi.ref_frame] ^ sign_bias[ref_frame]) {
-        mv.x *= -1;
-        mv.y *= -1;
+        mv.as_row_col[0] *= -1;
+        mv.as_row_col[1] *= -1;
     }
 
 }
@@ -366,23 +366,23 @@ function read_mv_component(bool, mvc) {
 
 //Do not need to redeclare these
 var near_mvs = [
-    new MotionVector(),
-    new MotionVector(),
-    new MotionVector(),
-    new MotionVector()
+    MotionVector.create(),
+    MotionVector.create(),
+    MotionVector.create(),
+    MotionVector.create()
 ];
 
-var near_mvs_best =  new MotionVector();
+var near_mvs_best =  MotionVector.create();
 
 var chroma_mv = [
-    new MotionVector(),
-    new MotionVector(),
-    new MotionVector(),
-    new MotionVector()
+    MotionVector.create(),
+    MotionVector.create(),
+    MotionVector.create(),
+    MotionVector.create()
 ];
         
 var cnt = new Int32Array(4);
-var this_mv_tmp = new MotionVector();
+var this_mv_tmp = MotionVector.create();
 function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
     var mbmi = mi[this_off].mbmi;
@@ -509,7 +509,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
          */
         if (cnt[CNT_NEAREST] >= cnt[CNT_BEST]) {
             near_mvs[CNT_BEST].as_int[0] = near_mvs[CNT_NEAREST].as_int[0];
-            //near_mvs[CNT_BEST].y = near_mvs[CNT_NEAREST].y;
+            //near_mvs[CNT_BEST].as_row_col[1] = near_mvs[CNT_NEAREST].y;
         }
         
 
@@ -554,10 +554,10 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         var this_mvs = this_.bmi.mvs;
                         for (b = 0; b < 16; b++) {
                             
-                            chroma_mv[(b >> 1 & 1) + (b >> 2 & 2)].x +=
-                                    this_mvs[b].x;
-                            chroma_mv[(b >> 1 & 1) + (b >> 2 & 2)].y +=
-                                    this_mvs[b].y;
+                            chroma_mv[(b >> 1 & 1) + (b >> 2 & 2)].as_row_col[0] +=
+                                    this_mvs[b].as_row_col[0];
+                            chroma_mv[(b >> 1 & 1) + (b >> 2 & 2)].as_row_col[1] +=
+                                    this_mvs[b].as_row_col[1] ;
 
                             if (need_mc_border(this_mvs[b],
                                     x + (b & 3) * 4, y + (b & ~3), 4, w, h))
@@ -568,10 +568,10 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         }
 
                         for (b = 0; b < 4; b++) {
-                            chroma_mv[b].x += 4 + (chroma_mv[b].x >> 28) | 0;///* + 8 * (chroma_mv[b].x >> 31)*/;
-                            chroma_mv[b].y += 4 + (chroma_mv[b].y >> 28) | 0;
-                            chroma_mv[b].x = (chroma_mv[b].x >> 2);
-                            chroma_mv[b].y = (chroma_mv[b].y >> 2);
+                            chroma_mv[b].as_row_col[0] += 4 + (chroma_mv[b].as_row_col[0] >> 28) | 0;///* + 8 * (chroma_mv[b].as_row_col[0] >> 31)*/;
+                            chroma_mv[b].as_row_col[1] += 4 + (chroma_mv[b].as_row_col[1] >> 28) | 0;
+                            chroma_mv[b].as_row_col[0] = (chroma_mv[b].as_row_col[0] >> 2);
+                            chroma_mv[b].as_row_col[1] = (chroma_mv[b].as_row_col[1] >> 2);
 
                             //note we're passing in non-subsampled coordinates
                             if (need_mc_border(chroma_mv[b],
@@ -589,8 +589,8 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                         vp8_clamp_mv2(clamped_best_mv, bounds);
                         
                         read_mv(bool, this_.mbmi.mv, hdr.mv_probs);
-                        this_.mbmi.mv.x += clamped_best_mv.x;
-                        this_.mbmi.mv.y += clamped_best_mv.y;
+                        this_.mbmi.mv.as_row_col[0] += clamped_best_mv.as_row_col[0];
+                        this_.mbmi.mv.as_row_col[1] += clamped_best_mv.as_row_col[1] ;
                         this_.mbmi.y_mode = NEWMV;
                     }
                 } else {
@@ -633,15 +633,15 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
                 var b;
 
                 b = vp8_treed_read(bool, vp8_bmode_tree, vp8_bmode_prob , 0);
-                modes[i] = mvs[i].x = b;
-                //mvs[i].y = 0;
+                modes[i] = mvs[i].as_row_col[0] = b;
+                //mvs[i].as_row_col[1] = 0;
             }
         }
 
    
         mbmi.y_mode = y_mode;
         mbmi.uv_mode = vp8_treed_read(bool, vp8_uv_mode_tree, hdr.uv_mode_probs , 0);
-        mbmi.mv.x = mi[this_off].mbmi.mv.y = 0;
+        mbmi.mv.as_row_col[0] = mi[this_off].mbmi.mv.as_row_col[1] = 0;
         mbmi.ref_frame = CURRENT_FRAME;
 
     }

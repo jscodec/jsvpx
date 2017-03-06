@@ -49,7 +49,7 @@ class MODE_INFO {
             uv_mode: 0, 
             ref_frame: 0,
             is_4x4: 0,
-            mv: new MotionVector(),
+            mv: MotionVector.create(),
             partitioning: 0, 
             mb_skip_coeff: 0, 
             need_mc_border: 0,
@@ -59,26 +59,14 @@ class MODE_INFO {
         
         this.bmi = null;
 
-        /*
-        var mvs = new Array(16);
-        var i = 16;
-        while (i--)
-            mvs[i] = new MotionVector();
-        
-        //Only needed for spit mode, maybe can skip initialization unless splitt mode is on
-        this.bmi =
-                {
-                    mvs: mvs,
-                    modes: new Uint8Array(16)//16,'todo:enum prediction_mode')
-                };
-        */
+
     }
 
     init_split_mode() {
         var mvs = new Array(16);
         var i = 16;
         while (i--)
-            mvs[i] = new MotionVector();
+            mvs[i] = MotionVector.create();
 
         //Only needed for spit mode, maybe can skip initialization unless splitt mode is on
         this.bmi =

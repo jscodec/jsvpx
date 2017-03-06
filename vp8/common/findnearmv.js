@@ -23,8 +23,8 @@ var B_HE_PRED = 3; /* horizontal prediction */
 function mv_bias(mb, sign_bias, ref_frame, mv) {
     
     if (sign_bias[mb.mbmi.ref_frame] ^ sign_bias[ref_frame]) {
-        mv.x *= -1;
-        mv.y *= -1;
+        mv.as_row_col[0] *= -1;
+        mv.as_row_col[1] *= -1;
     }
     
 }

@@ -20,10 +20,10 @@ var memcpy = c_utils.memcpy;
 
 //Keep from having to redeclare this
 var chroma_mv = [
-        new MotionVector(),
-        new MotionVector(),
-        new MotionVector(),
-        new MotionVector()
+        MotionVector.create(),
+        MotionVector.create(),
+        MotionVector.create(),
+        MotionVector.create()
     ];
     
     
@@ -152,29 +152,29 @@ function build_4x4uvmvs(mbi, full_pixel) {
 
             
 
-            temp = mvs[b].x +
-                    mvs[b + 1].x +
-                    mvs[b + 4].x +
-                    mvs[b + 5].x;
+            temp = mvs[b].as_row_col[0] +
+                    mvs[b + 1].as_row_col[0] +
+                    mvs[b + 4].as_row_col[0] +
+                    mvs[b + 5].as_row_col[0];
 
             if (temp < 0)
                 temp -= 4;
             else
                 temp += 4;
 
-            chroma_mv_cache.x = (temp / 8 ) | 0;
+            chroma_mv_cache.as_row_col[0] = (temp / 8 ) | 0;
 
-            temp = mvs[b].y +
-                    mvs[b + 1].y +
-                    mvs[b + 4].y +
-                    mvs[b + 5].y;
+            temp = mvs[b].as_row_col[1] +
+                    mvs[b + 1].as_row_col[1] +
+                    mvs[b + 4].as_row_col[1] +
+                    mvs[b + 5].as_row_col[1];
 
             if (temp < 0)
                 temp -= 4;
             else
                 temp += 4;
 
-            chroma_mv_cache.y = (temp / 8) | 0;
+            chroma_mv_cache.as_row_col[1] = (temp / 8) | 0;
 
             if (full_pixel === 1) {
                 chroma_mv_cache.as_int[0] &= 0xFFF8FFF8;
@@ -240,7 +240,7 @@ function build_mc_border(dst, dst_off, src, src_off, stride, x, y, b_w, b_h, w, 
     } while (--b_h);
 }
 
-var uvmv = new MotionVector();
+var uvmv = MotionVector.create();
 
 function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
     var y, u , v;
@@ -318,10 +318,10 @@ function recon_1_block(output, output_off, reference, reference_off, stride, mv,
 
     if (mv.as_int[0]) {
 
-        mx = mv.x & 7;
-        my = mv.y & 7;
+        mx = mv.as_row_col[0] & 7;
+        my = mv.as_row_col[1] & 7;
 
-        reference_off += ((mv.y >> 3) * stride) + (mv.x >> 3);
+        reference_off += ((mv.as_row_col[1] >> 3) * stride) + (mv.as_row_col[0] >> 3);
 
 
 
@@ -351,20 +351,20 @@ function recon_1_edge_block(output, output_off,
     var b_h = 4;
     var mx = 0, my = 0;
 
-    x += mv_.x >> 3;
-    y += mv_.y >> 3;
+    x += mv_.as_row_col[0] >> 3;
+    y += mv_.as_row_col[1] >> 3;
 
 
 
     if (x < 2 || x + b_w - 1 + 3 >= w || y < 2 || y + b_h - 1 + 3 >= h) {
         
-        reference_off += (mv_.x >> 3) + (mv_.y >> 3) * stride;
+        reference_off += (mv_.as_row_col[0] >> 3) + (mv_.as_row_col[1] >> 3) * stride;
         build_mc_border(emul_block, emul_block_off,
                 reference, reference_off - 2 - (stride << 1), stride,
                 x - 2, y - 2, b_w + 5, b_h + 5, w, h);
         reference = emul_block;
         reference_off = emul_block_off + (stride << 1) + 2;
-        reference_off -= (mv_.x >> 3) + (mv_.y >> 3) * stride;
+        reference_off -= (mv_.as_row_col[0] >> 3) + (mv_.as_row_col[1] >> 3) * stride;
         
     }
  
@@ -373,11 +373,11 @@ function recon_1_edge_block(output, output_off,
 
     if (mv_.as_int[0]) {
 
-        mx = mv_.x & 7;
-        my = mv_.y & 7;
+        mx = mv_.as_row_col[0] & 7;
+        my = mv_.as_row_col[1] & 7;
 
 
-        reference_off += ((mv_.y >> 3) * stride) + (mv_.x >> 3);
+        reference_off += ((mv_.as_row_col[1] >> 3) * stride) + (mv_.as_row_col[0] >> 3);
 
 
 
@@ -389,7 +389,7 @@ function recon_1_edge_block(output, output_off,
         predict_off = output_off;
 
     } else {
-        reference_off += ((mv_.y >> 3) * stride) + (mv_.x >> 3);
+        reference_off += ((mv_.as_row_col[1] >> 3) * stride) + (mv_.as_row_col[0] >> 3);
         predict = reference;
         predict_off = reference_off;
         
@@ -411,16 +411,16 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
     uvmv.as_int[0] = mbmi_cache.mv.as_int[0];
 
     if (mbi.mbmi.need_mc_border === 1) {
-        var x = uvmv.x;
-        var y = uvmv.y;
-        uvmv.x = (x + 1 + ((x >> 31) << 1));
-        uvmv.y = (y + 1 + ((y >> 31) << 1));
-        uvmv.x /= 2;
-        uvmv.y /= 2;
+        var x = uvmv.as_row_col[0];
+        var y = uvmv.as_row_col[1] ;
+        uvmv.as_row_col[0] = (x + 1 + ((x >> 31) << 1));
+        uvmv.as_row_col[1] = (y + 1 + ((y >> 31) << 1));
+        uvmv.as_row_col[0] /= 2;
+        uvmv.as_row_col[1] /= 2;
 
     } else {
-        uvmv.x = (uvmv.x + 1) >> 1;
-        uvmv.y = (uvmv.y + 1) >> 1;
+        uvmv.as_row_col[0] = (uvmv.as_row_col[0] + 1) >> 1;
+        uvmv.as_row_col[1] = (uvmv.as_row_col[1] + 1) >> 1;
     }
 
     if (full_pixel) {
