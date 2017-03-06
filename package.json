@@ -33,7 +33,7 @@
     "webpack": "^1.13.3",
     "webpack-closure-compiler": "^2.1.3",
     "gentelella" : "^1.3.0",
-    "jsivf" : "^0.0.1",
+    "jsivf" : "^0.0.2",
      "ogv" : "^1.3.0"
   },
     "main" : "builds/jsvpx.js",

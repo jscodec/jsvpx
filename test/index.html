@@ -1,34 +1,109 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
+
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Browser Vp8 Validation Tests</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="../build/test.js"></script>
+
+    </head>
+    <body>
+        <pre id="output" >TODO write content</pre>
+
+        <script src="../node_modules/jsivf/builds/jsivf.js"></script>
+        <script src="../node_modules/js-md5/build/md5.min.js"></script>
+        <script src="../builds/jsvpx.js"></script>
         <script>
-            
 
+            function pad(num, size) {
+                var s = num + "";
+                while (s.length < size)
+                    s = "0" + s;
+                return s;
+            }
 
-            var oReq = new XMLHttpRequest();
-            oReq.open("GET", "frame.bin", true);
-            oReq.responseType = "arraybuffer";
+            var vectorFolder = '../vp8-test-vectors/';
+            var output = document.getElementById('output');
 
-            oReq.onload = function (event) {
+            var vector = 'vp80-00-comprehensive-001.ivf';
+            var testVectorRequest = new XMLHttpRequest();
+            testVectorRequest.open("GET", vectorFolder + vector, true);
+            testVectorRequest.responseType = "arraybuffer";
 
-                var decoder = new Flare.Vp8();
-                decoder.decode(oReq.response);
+            testVectorRequest.onload = function (event) {
+
+                runTest(testVectorRequest.response);
 
             };
 
-            oReq.send(null);
+            testVectorRequest.send(null);
+
+            function runTest(buffer) {
+                var demuxer = new JsIvf();
+
+                demuxer.receiveBuffer(buffer);
+                demuxer.parseHeader();
+
+                var decoder = new JsVpx();
+                var outData = "";
+
+                for (var i = 0; i < demuxer.frameCount; i++) {
+                    var testImg = decoder.decode(demuxer.processFrame());
+                    if (testImg) {
+                        var offsets = testImg.planes_off;
+                        var y_off = offsets[0];
+                        var u_off = offsets[1];
+                        var v_off = offsets[2];
+
+
+                        var mainHash = md5.create();
+
+                        for (var y = 0; y < testImg.d_h; y++) {
+                            mainHash.update(testImg.img_data.subarray(y_off, y_off + testImg.d_w));
+                            y_off += testImg.stride[0];
+                        }
+
+                        var chromaHeight = ((1 + testImg.d_h) / 2) | 0;
+                        var chromaWidth = ((1 + testImg.d_w) / 2) | 0;
+
+
+                        //UPDATING MAIN HASH U
+                        u_off = offsets[1];
+                        for (var y = 0; y < chromaHeight; y++) //testImg.d_h
+                        {
+
+
+                            mainHash.update(testImg.img_data.subarray(u_off, u_off + chromaWidth));
+                            u_off += testImg.stride[1];
+                        }
+
+                        //UPDATING MAIN HASH V
+                        v_off = offsets[2];
+                        for (var y = 0; y < chromaHeight; y++) //testImg.d_h
+                        {
+
+                            mainHash.update(testImg.img_data.subarray(v_off, v_off + chromaWidth));
+                            v_off += testImg.stride[2];
+                        }
+
+
+                        outData += mainHash.hex() + "  " + 'basename here' + "-";
+                        outData += testImg.d_w + "x" + testImg.d_h;
+                        outData += "-" + pad(i, 4);
+                        outData += ".i420";
+                        outData += "\n";
+
+                    }
+                    output.innerHTML = outData;
+                }
+
+            }
+
+            function validateTest() {
+
+            }
+
         </script>
-    </head>
-    <body>
-        <div>TODO write content</div>
+
     </body>
 </html>
