@@ -138,20 +138,29 @@
 	}
 
 	function loadTest(vectorFile) {
-	    var testVectorRequest = new XMLHttpRequest();
-	    testVectorRequest.open("GET", vectorFolder + vectorFile, true);
-	    testVectorRequest.responseType = "arraybuffer";
+	    
 
-	    testVectorRequest.onload = function (event) {
+	    
 
-	        runTest(testVectorRequest.response, vectorFile);
+	    QUnit.test(vectorFile, function (assert) {
+	        var done = assert.async();
 
-	    };
+	        var testVectorRequest = new XMLHttpRequest();
+	        testVectorRequest.open("GET", vectorFolder + vectorFile, true);
+	        testVectorRequest.responseType = "arraybuffer";
 
-	    testVectorRequest.send(null);
+	        testVectorRequest.onload = function (event) {
+	            runTest(testVectorRequest.response, vectorFile, done);
+	        };
+	        testVectorRequest.send(null);
+	    });
+
+	    
+
+	    
 	}
 
-	function runTest(buffer, vectorFile) {
+	function runTest(buffer, vectorFile, callback) {
 	    var demuxer = new ivf();
 
 	    demuxer.receiveBuffer(buffer);
@@ -210,19 +219,27 @@
 
 
 	    }
-	    var validationRecordRequest = new XMLHttpRequest();
-	    validationRecordRequest.open("GET", vectorFolder + vectorFile + '.md5', true);
-	    validationRecordRequest.responseType = "text";
+	    
 
-	    validationRecordRequest.onload = function (event) {
-	        //output.innerHTML = outData;
-	        var validData = validationRecordRequest.response;
-	        QUnit.test(vectorFile, function (assert) {
-	            assert.strictEqual(outData, validData, "Md5 Vector Comparison");
-	        });
-	    };
+	    
+	    //output.innerHTML = outData;
 
-	    validationRecordRequest.send(null);
+	    
+
+	        var validationRecordRequest = new XMLHttpRequest();
+	        validationRecordRequest.open("GET", vectorFolder + vectorFile + '.md5', true);
+	        validationRecordRequest.responseType = "text";
+	        validationRecordRequest.onload = function (event) {
+	            var validData = validationRecordRequest.response;
+	            QUnit.assert.strictEqual(outData, validData, "Md5 Vector Comparison");
+	            callback();
+	        };
+	        validationRecordRequest.send(null);
+	    //});
+
+	    
+
+	    
 
 
 	}

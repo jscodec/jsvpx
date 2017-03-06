@@ -16,7 +16,8 @@ Currently moving towards the direction of the main branch.
 
 Looking to try some interesting things with webworkers, or perhaps some GPU.
 
-
+### ChangeLog
+* Added browser unit tests in test folder : http://jscodec.com/jsvpx-tests/
 
 ### Current TODO
 * Figure out whats causing the slow parts, (Probably splitmode prediction)
