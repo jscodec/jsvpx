@@ -168,23 +168,44 @@ function filter_mb_v_edge(src,
 
 
 function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-    
-    var p3 = pixels[pixels_off - 4 * stride];
-    var p2 = pixels[pixels_off - 3 * stride];
-    var p1 = pixels[pixels_off - 2 * stride];
-    var p0 = pixels[pixels_off - stride];
-    var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off + stride];
-    var q2 = pixels[pixels_off + 2 * stride];
-    var q3 = pixels[pixels_off + 3 * stride];
-
     var E = edge_limit;
     var I = interior_limit;
 
-    return simple_threshold(pixels, pixels_off, stride, 2 * E + I)
-            && abs(p3 - p2) <= I && abs(p2 - p1) <= I
-            && abs(p1 - p0) <= I && abs(q3 - q2) <= I
-            && abs(q2 - q1) <= I && abs(q1 - q0) <= I;
+    if (simple_threshold(pixels, pixels_off, stride, 2 * E + I) === 0)
+        return 0;
+
+    var p3 = pixels[pixels_off - 4 * stride];
+    var p2 = pixels[pixels_off - 3 * stride];
+
+    if (abs(p3 - p2) > I)
+        return 0;
+
+    var p1 = pixels[pixels_off - 2 * stride];
+
+
+    if (abs(p2 - p1) > I)
+        return 0;
+
+    var p0 = pixels[pixels_off - stride];
+   
+    if(abs(p1 - p0) > I)
+        return 0;
+ 
+    var q2 = pixels[pixels_off + 2 * stride];
+    var q3 = pixels[pixels_off + 3 * stride];
+    
+    if(abs(q3 - q2) > I)
+        return 0;
+    
+    var q0 = pixels[pixels_off];
+    var q1 = pixels[pixels_off + stride];
+    
+    if(abs(q2 - q1) > I)
+        return 0;
+    
+    
+    return abs(q1 - q0) <= I;
+    
 }
 
 
@@ -230,10 +251,16 @@ function high_edge_variance(pixels, pixels_off, stride, hev_threshold) {
 
     var p1 = pixels[pixels_off - 2 * stride];
     var p0 = pixels[pixels_off - stride];
+    
+
+    if(abs(p1 - p0) > hev_threshold)
+        return 1;
+    
     var q0 = pixels[pixels_off];
     var q1 = pixels[pixels_off + stride];
+    
+    return abs(q1 - q0) > hev_threshold;
 
-    return abs(p1 - p0) > hev_threshold || abs(q1 - q0) > hev_threshold;
 }
 
 function vp8_loop_filter_bv_c(y, y_off, u_off, v_off, stride, uv_stride, edge_limit, interior_limit, hev_threshold) {

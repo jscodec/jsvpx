@@ -31,9 +31,9 @@ var SPLITMV = 9;
 var abs = Math.abs;
 
 var min = Math.min;
-var max = Math.max; 
+var max = Math.max;
 
-var edge_limit= new Int32Array([0]), interior_limit=new Int32Array([0]), hev_threshold=new Int32Array([0]);
+var edge_limit = new Int32Array([0]), interior_limit = new Int32Array([0]), hev_threshold = new Int32Array([0]);
 
 function vp8_loop_filter_row_simple(ctx, row) {
     var y = 0;
@@ -50,63 +50,62 @@ function vp8_loop_filter_row_simple(ctx, row) {
     y_off += (stride * row) << 4;
 
 
-    mbi = ctx.mb_info_rows; 
-    mbi_off = ctx.mb_info_rows_off[1+row];
+    mbi = ctx.mb_info_rows;
+    mbi_off = ctx.mb_info_rows_off[1 + row];
     //console.log(mbi[mbi_off]);
-    
-    for (col = 0; col <  ctx.mb_cols; col++) {
-        
+
+    for (col = 0; col < ctx.mb_cols; col++) {
+
 
         // TODO: only need to recalculate every MB if segmentation is
         //  enabled.
-         
-        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                                    interior_limit, hev_threshold);
 
-        if (edge_limit[0]){
+        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+                interior_limit, hev_threshold);
+
+        if (edge_limit[0]) {
 
 
             var filter_subblocks = (mbi[mbi_off].mbmi.eob_mask
-                                    || mbi[mbi_off].mbmi.y_mode == SPLITMV
-                                    || mbi[mbi_off].mbmi.y_mode == B_PRED)+0;
-                            
+                    || mbi[mbi_off].mbmi.y_mode == SPLITMV
+                    || mbi[mbi_off].mbmi.y_mode == B_PRED) + 0;
+
             var mb_limit = (edge_limit[0] + 2) * 2 + interior_limit[0];
             var b_limit = edge_limit[0] * 2 + interior_limit[0];
 
             if (col > 0)
                 vp8_loop_filter_simple_vertical_edge_c(y, y_off, stride, mb_limit);
-            
+
             if (filter_subblocks)
             {
                 //vp8_loop_filter_simple_bv vp8_loop_filter_bvs_c
                 vp8_loop_filter_bvs_c(y, y_off, stride, b_limit);
-                
+
                 //filter_v_edge_simple(y, y_off + 4, stride, b_limit);
                 //filter_v_edge_simple(y, y_off + 8, stride, b_limit);
                 //filter_v_edge_simple(y, y_off + 12, stride, b_limit);
-                
+
             }
 
             if (row > 0)
-                
                 vp8_loop_filter_simple_horizontal_edge_c(y, y_off, stride, mb_limit);
 
             if (filter_subblocks)
             {
-                vp8_loop_filter_bhs_c(y , y_off, stride, b_limit);
+                vp8_loop_filter_bhs_c(y, y_off, stride, b_limit);
             }
-            
+
         }
 
         y_off += 16;
         mbi_off++;
     }
-            
+
 }
 var edge_limit_cache = new Uint8Array([0]), interior_limit_cache = new Uint8Array([0]), hev_threshold_cache = new Uint8Array([0]);
 
 function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
-   
+
     var y = 0, u = 0, v = 0;
     var y_off = 0, u_off = 0, v_off = 0;
     var stride = 0, uv_stride = 0;
@@ -122,9 +121,9 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
     y_off = currentImg.planes_off[PLANE_Y];
     u_off = currentImg.planes_off[PLANE_U];
     v_off = currentImg.planes_off[PLANE_V];
-    y_off += (stride * row ) * 16;
+    y_off += (stride * row) * 16;
     u_off += (uv_stride * row) * 8;
-    v_off += (uv_stride * row ) * 8;
+    v_off += (uv_stride * row) * 8;
     mbi = ctx.mb_info_rows; //[1 + row];
     mbi_off = ctx.mb_info_rows_off[1 + row];
 
@@ -135,25 +134,25 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
         var edge_limit = edge_limit_cache, interior_limit = interior_limit_cache, hev_threshold = hev_threshold_cache;
         // TODO: only need to recalculate every MB if segmentation is
         //  enabled.
-         
+
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                 interior_limit, hev_threshold);
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
-        
-        
+
+
         if (edge_limit)
         {
             if (col > 0)
                 vp8_loop_filter_mbv(y, y_off, u_off, v_off, stride, uv_stride, edge_limit, interior_limit, hev_threshold);
 
 
-                //vp8_loop_filter_bv_c
+            //vp8_loop_filter_bv_c
             if (mbi[mbi_off].mbmi.eob_mask
                     || mbi[mbi_off].mbmi.y_mode === SPLITMV
                     || mbi[mbi_off].mbmi.y_mode === B_PRED)
             {
 
-            vp8_loop_filter_bv_c(y, y_off, u_off, v_off, stride, uv_stride, edge_limit, interior_limit, hev_threshold);
+                vp8_loop_filter_bv_c(y, y_off, u_off, v_off, stride, uv_stride, edge_limit, interior_limit, hev_threshold);
 
             }
 
@@ -188,7 +187,7 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
                         edge_limit, interior_limit,
                         hev_threshold, 1);
             }
-            
+
         }
 
         y_off += 16;
@@ -196,7 +195,7 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
         v_off += 8;
         mbi_off++;
     }
-    
+
 }
 
 function calculate_filter_parameters(ctx,
@@ -209,10 +208,10 @@ function calculate_filter_parameters(ctx,
     /* Reference code/spec seems to conflate filter_level and
      * edge_limit
      */
-    
+
     filter_level = ctx.common.level;
     //console.warn(mbi);
-    
+
     if (ctx.segment_hdr.enabled === 1)
     {
         if (!ctx.segment_hdr.abs)
@@ -220,21 +219,20 @@ function calculate_filter_parameters(ctx,
         else
             filter_level = ctx.segment_hdr.lf_level[mbi.mbmi.segment_id];
     }
-    
-    
-    
-    
+
+
+
+
     if (ctx.common.delta_enabled)
     {
         filter_level +=
-            ctx.common.ref_delta[mbi.mbmi.ref_frame];
+                ctx.common.ref_delta[mbi.mbmi.ref_frame];
 
         if (mbi.mbmi.ref_frame === CURRENT_FRAME)
         {
             if (mbi.mbmi.y_mode === B_PRED)
                 filter_level += ctx.common.mode_delta[0];
-        }
-        else if (mbi.mbmi.y_mode === ZEROMV)
+        } else if (mbi.mbmi.y_mode === ZEROMV)
             filter_level += ctx.common.mode_delta[1];
         else if (mbi.mbmi.y_mode === SPLITMV)
             filter_level += ctx.common.mode_delta[3];
@@ -264,7 +262,11 @@ function calculate_filter_parameters(ctx,
     if (interior_limit < 1)
         interior_limit = 1;
 
-    hev_threshold = (filter_level >= 15) ? 1 : 0;
+    if (filter_level >= 15) {
+        hev_threshold = 1;
+    } else {
+        hev_threshold = 0;
+    }
 
     if (filter_level >= 40)
         hev_threshold++;
@@ -275,32 +277,32 @@ function calculate_filter_parameters(ctx,
     edge_limit_[0] = filter_level;
     interior_limit_[0] = interior_limit;
     hev_threshold_[0] = hev_threshold;
-    
+
 }
 
 function saturate_int8(x) {
     /*
-    if (x < -128)
-        return -128 | 0;
-
-    if (x > 127)
-        return 127 | 0;
-*/
-return min(max(x, -128), 127);
-   // return x;
+     if (x < -128)
+     return -128 | 0;
+     
+     if (x > 127)
+     return 127 | 0;
+     */
+    return min(max(x, -128), 127);
+    // return x;
 }
 
 function saturate_uint8(x) {
     /*
-    x = x|0;
-    if (x < 0)
-        return 0|0;
-
-    if (x > 255)
-        return 255|0;
-
-    return x|0;
-    */
+     x = x|0;
+     if (x < 0)
+     return 0|0;
+     
+     if (x > 255)
+     return 255|0;
+     
+     return x|0;
+     */
     return min(max(x, 0), 255);
 }
 
@@ -319,28 +321,28 @@ function simple_threshold(pixels, pixels_off, stride, filter_limit) {
     var p1 = pixels[pixels_off - (stride << 1)];
     var p0 = pixels[pixels_off - stride];
     var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off +  stride];
-    
+    var q1 = pixels[pixels_off + stride];
+
     return ((abs(p0 - q0) * 2 + (abs(p1 - q1) >> 1)) <= filter_limit) | 0;
 }
 
 function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-var p3 = pixels[pixels_off -4*stride];
-var p2 = pixels[pixels_off -3*stride];
-var p1 = pixels[pixels_off -2*stride];
-var p0 = pixels[pixels_off -stride];
-var q0 = pixels[pixels_off];
-var q1 = pixels[pixels_off+stride];
-var q2 = pixels[pixels_off+ 2*stride];
-var q3 = pixels[pixels_off+ 3*stride];
+    var p3 = pixels[pixels_off - 4 * stride];
+    var p2 = pixels[pixels_off - 3 * stride];
+    var p1 = pixels[pixels_off - 2 * stride];
+    var p0 = pixels[pixels_off - stride];
+    var q0 = pixels[pixels_off];
+    var q1 = pixels[pixels_off + stride];
+    var q2 = pixels[pixels_off + 2 * stride];
+    var q3 = pixels[pixels_off + 3 * stride];
 
     var E = edge_limit;
     var I = interior_limit;
 
     return simple_threshold(pixels, pixels_off, stride, 2 * E + I)
-           && abs(p3 - p2) <= I && abs(p2 - p1) <= I
-           && abs(p1 - p0) <= I && abs(q3 - q2) <= I
-           && abs(q2 - q1) <= I && abs(q1 - q0) <= I;
+            && abs(p3 - p2) <= I && abs(p2 - p1) <= I
+            && abs(p1 - p0) <= I && abs(q3 - q2) <= I
+            && abs(q2 - q1) <= I && abs(q1 - q0) <= I;
 }
 
 //vp8_mbfilter
@@ -348,7 +350,7 @@ function filter_mb_edge(pixels, pixels_off, stride) {
 
     var stride2 = stride << 1;
     var stride3 = 3 * stride;
-    
+
     var p2 = pixels[pixels_off - stride3];
     var p1 = pixels[pixels_off - stride2];
     var p0 = pixels[pixels_off - stride];
@@ -406,7 +408,7 @@ function filter_subblock_h_edge(src,
         edge_limit,
         interior_limit,
         hev_threshold,
-        size){
+        size) {
     var i = 0;
     var length = size << 3;
     for (i = 0; i < length; i++) {

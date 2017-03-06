@@ -268,13 +268,13 @@ function  b_pred(predict, predict_off, stride, mbi, coeffs, coeffs_off) {
 
  
     //line 165 in decode frame
-
+    var modes = mbi.bmi.modes;
     for (i = 0; i < 16; i++) {
         var b_predict = predict;
         var b_predict_off = predict_off + ((i & 3) << 2);
 
 
-        switch (mbi.bmi.modes[i])
+        switch (modes[i])
         {
             case B_DC_PRED:
                 predict_dc_nxn(b_predict, b_predict_off, stride, 4);

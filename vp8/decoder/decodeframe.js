@@ -127,7 +127,7 @@ function vp8cx_init_de_quantizer(factors, seg, common) {
     var q = 0;
     var dqf = factors;
     var factor;
-    
+
     var length = 1;
     if (seg.enabled === 1) {
         length = MAX_MB_SEGMENTS;
@@ -157,27 +157,27 @@ function vp8cx_init_de_quantizer(factors, seg, common) {
 
 
 var img = {//img_index litteral
-        y: null,
-        u: null,
-        v: null,
-        data_32 : null,
-        y_off: 0,
-        u_off: 0,
-        v_off: 0,
-        stride: 0,
-        uv_stride: 0
-    };
-    
+    y: null,
+    u: null,
+    v: null,
+    data_32: null,
+    y_off: 0,
+    u_off: 0,
+    v_off: 0,
+    stride: 0,
+    uv_stride: 0
+};
+
 var recon_above_off = new Uint32Array([0, 0, 0]);
 var recon_left_off = new Uint32Array([0, 0, 0]);
 
 function decode_mb_rows(ctx) {
-    
+
     var mb_idx = 0;
     var pc = ctx.common; // change this later
-    
-    
-    
+
+
+
 
     //var img = ctx.ref_frames[CURRENT_FRAME].img; //INTRA_FRAME
     var yv12_fb_new = ctx.ref_frames[CURRENT_FRAME].img;// cache reference
@@ -199,7 +199,7 @@ function decode_mb_rows(ctx) {
 
     for (var row = 0, partition = 0; row < mb_rows; row++) {
 
-        
+
         var mbi;
         var mbi_off = 0;
         var col = 0;
@@ -207,55 +207,55 @@ function decode_mb_rows(ctx) {
         var coeffs_off = 0;
 
 
-        
+
         img.y_off = yv12_fb_new.planes_off[PLANE_Y];
         img.u_off = yv12_fb_new.planes_off[PLANE_U];
         img.v_off = yv12_fb_new.planes_off[PLANE_V];
-        
-        
-        
-        img.y_off += (img.stride * row ) << 4;
-        img.u_off += (img.uv_stride * row ) << 3;
-        img.v_off += (img.uv_stride * row ) << 3;
+
+
+
+        img.y_off += (img.stride * row) << 4;
+        img.u_off += (img.uv_stride * row) << 3;
+        img.v_off += (img.uv_stride * row) << 3;
         mbi = ctx.mb_info_rows; //[1 + row];
         mbi_off = (ctx.mb_info_rows_off[1 + row]);
         coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
- 
- 
-        
+
+
+
         recon_above_off[0] = img.y_off;
         recon_above_off[1] = img.u_off;
         recon_above_off[2] = img.v_off;
-        
-        
+
+
         recon_left_off[0] = recon_above_off[0] - 1;
         recon_left_off[1] = recon_above_off[1] - 1;
         recon_left_off[2] = recon_above_off[2] - 1;
-        
+
 
         // Fix up the out-of-frame pixels
-        
+
         var mbi_cache = mbi[mbi_off];
 
 
         fixup_left(img.y, img.y_off, 16, img.stride, row, mbi_cache.mbmi.y_mode);
         fixup_left(img.u, img.u_off, 8, img.uv_stride, row, mbi_cache.mbmi.uv_mode);
         fixup_left(img.v, img.v_off, 8, img.uv_stride, row, mbi_cache.mbmi.uv_mode);
-                //doesnt seem to do anything
-                //if (row === 0)
-                //  img.y[img.y_off - img.stride - 1]= 127;
-                //console.warn(img.y_off - img.stride - 1);
+        //doesnt seem to do anything
+        //if (row === 0)
+        //  img.y[img.y_off - img.stride - 1]= 127;
+        //console.warn(img.y_off - img.stride - 1);
 
         //vp8_setup_intra_recon(img.y, img.y_off, img.u_off, img.v_off, img.stride, img.uv_stride);
 
 
         //probably line 485
-        for (col = 0; col <  mb_cols; col++) {
+        for (col = 0; col < mb_cols; col++) {
             //if (col > 0) {
-            
-            
-            
-            
+
+
+
+
             if (row === 0) {
                 //vp8_setup_intra_recon_top_line
 
@@ -268,7 +268,7 @@ function decode_mb_rows(ctx) {
             }
 
             //swap these two
-            decode_macroblock(ctx, partition, row, col , img, mbi_cache, coeffs, coeffs_off );
+            decode_macroblock(ctx, partition, row, col, img, mbi_cache, coeffs, coeffs_off);
 
 
 
@@ -310,8 +310,8 @@ function decode_mb_rows(ctx) {
         else
             vp8_loop_filter_row_normal(ctx, row - 1, 0, ctx.mb_cols);
     }
-    
-    
+
+
 }
 
 function fixup_left(predict, predict_off, width, stride, row, mode) {
@@ -320,7 +320,7 @@ function fixup_left(predict, predict_off, width, stride, row, mode) {
     // above row, unless this is also row 0, in which case we use
     // 129.
     //
- 
+
     var left = predict;
     var left_off = (predict_off - 1);
     var i = 0;
@@ -338,7 +338,7 @@ function fixup_left(predict, predict_off, width, stride, row, mode) {
         }
     } else
     {
- 
+
         left_off -= stride;
 
         for (i = -1; i < width; i++)
@@ -392,17 +392,17 @@ function memset_32(ptr, ptr_off, value, num) {
     }
 }
 
-function memset_coeffs(ptr, ptr_off, value, num){
-    
-    var i = num ;//>> 2;
+function memset_coeffs(ptr, ptr_off, value, num) {
+
+    var i = num;//>> 2;
     var ptr_off_32 = ptr_off >> 4;
     var ptr_64 = ptr.data_64;
 
-     var num_32 = num >> 4;
-     for(var i = 0; i < num_32; i++){
-         ptr_64[ptr_off_32 + (i >> 4)] = 0;
-     }
-     
+    var num_32 = num >> 4;
+    for (var i = 0; i < num_32; i++) {
+        ptr_64[ptr_off_32 + (i >> 4)] = 0;
+    }
+
 }
 
 var coeff_clear = new Float64Array(200);
@@ -430,11 +430,11 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
     var copy_dest = coeffs.data_64;
     copy_dest.set(coeff_clear);
     /*
-    for(var c = 0; c < 200; c++){
-        copy_dest[c] = 0;
-    }*/
-    
-   
+     for(var c = 0; c < 200; c++){
+     copy_dest[c] = 0;
+     }*/
+
+
 
     if (mbmi_cache.mb_skip_coeff === 1) {
         //vp8_reset_mb_tokens_context
@@ -471,15 +471,15 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
 
         vp8_build_inter_predictors_mb(ctx, img, coeffs, coeffs_off, mbi_cache, start_col, row);
     }
-    
-    
+
+
 
 }
 
 var left_reset = new Int32Array(9);
 function reset_row_context(left) {
     //console.warn(left.length);
-    
+
     var i = left.length;
     while (i--)
         left[i] = 0;
@@ -488,32 +488,32 @@ function reset_row_context(left) {
 
 
 
-function setup_token_decoder( hdr, data, ptr, sz){
-        
-        var i = 0;
-        var decoder = hdr.decoder;
-        var bool = decoder.boolDecoder;
-        hdr.partitions = 1 << bool.get_uint(2);
-        var partitions = hdr.partitions;//cache 
+function setup_token_decoder(hdr, data, ptr, sz) {
 
-        if (sz < 3 * (partitions - 1))
-            throw "Truncated packet found parsing partition lenghts";
+    var i = 0;
+    var decoder = hdr.decoder;
+    var bool = decoder.boolDecoder;
+    hdr.partitions = 1 << bool.get_uint(2);
+    var partitions = hdr.partitions;//cache 
 
-        sz -= 3 * (partitions - 1);
+    if (sz < 3 * (partitions - 1))
+        throw "Truncated packet found parsing partition lenghts";
 
-        for (i = 0; i < partitions; i++) {
-            if (i < partitions - 1) {
-                hdr.partition_sz[i] = (data[ptr + 2] << 16)
-                        | (data[ptr + 1] << 8) | data[ptr];
-                ptr += 3;
-            } else
-                hdr.partition_sz[i] = sz;
+    sz -= 3 * (partitions - 1);
 
-            if (sz < hdr.partition_sz[i])
-                throw  "Truncated partition";
+    for (i = 0; i < partitions; i++) {
+        if (i < partitions - 1) {
+            hdr.partition_sz[i] = (data[ptr + 2] << 16)
+                    | (data[ptr + 1] << 8) | data[ptr];
+            ptr += 3;
+        } else
+            hdr.partition_sz[i] = sz;
 
-            sz -= hdr.partition_sz[i];
-        }
+        if (sz < hdr.partition_sz[i])
+            throw  "Truncated partition";
+
+        sz -= hdr.partition_sz[i];
+    }
 
 
     for (i = 0; i < partitions; i++) {
@@ -561,7 +561,7 @@ function init_frame(pbi) {
     var xd = pbi.segment_hdr;
 
     var to = pc.entropy_hdr.mv_probs;
-            
+
     if (pc.is_keyframe === true) {
 
         for (var i = 0; i < MV_PROB_CNT; i++)
@@ -586,15 +586,15 @@ function vp8_decode_frame(data, decoder) {
     var bc = decoder.boolDecoder;
     var pc = decoder.common;
     var xd = decoder.segment_hdr;
-    
+
     var sz = data.byteLength;
-    
-    
+
+
     var first_partition_length_in_bytes = 0;
-    
+
     var res;
     decoder.common.saved_entropy_valid = 0;
-    
+
 
 
     var clear0 = data[0];
@@ -649,7 +649,7 @@ function vp8_decode_frame(data, decoder) {
     if (pc.is_keyframe === true) {
         data.ptr += KEYFRAME_HEADER_SZ;
         sz -= KEYFRAME_HEADER_SZ;
-        decoder.mb_cols = ((pc.Width + 15)  >> 4) | 0;
+        decoder.mb_cols = ((pc.Width + 15) >> 4) | 0;
         decoder.mb_rows = ((pc.Height + 15) >> 4) | 0;
 
     }
@@ -773,43 +773,24 @@ function vp8_decode_frame(data, decoder) {
 
     if (key === true) {
         pc.refresh_gf = 1;
-    } else {
-        pc.refresh_gf = vpx_read_bit(bc);
-    }
-
-
-    if (key === true) {
         pc.refresh_arf = 1;
-    } else {
-        pc.refresh_arf = vpx_read_bit(bc);
-    }
-
-
-    if (key === true) {
         pc.copy_gf = 0;
-    } else {
-        pc.copy_gf = !pc.refresh_gf
-                ? bc.get_uint(2) : 0;
-    }
-
-    if (key === true) {
         pc.copy_arf = 0;
-    } else {
-        pc.copy_arf = !pc.refresh_arf
-                ? bc.get_uint(2) : 0;
-    }
-
-    if (key === true) {
         pc.sign_bias[GOLDEN_FRAME] = 0;
-    } else {
-        pc.sign_bias[GOLDEN_FRAME] = vpx_read_bit(bc);
-    }
-
-    if (key === true) {
         pc.sign_bias[ALTREF_FRAME] = 0;
     } else {
+        pc.refresh_gf = vpx_read_bit(bc);
+        pc.refresh_arf = vpx_read_bit(bc);
+        pc.copy_gf = !pc.refresh_gf
+                ? bc.get_uint(2) : 0;
+        pc.copy_arf = !pc.refresh_arf
+                ? bc.get_uint(2) : 0;
+        pc.sign_bias[GOLDEN_FRAME] = vpx_read_bit(bc);
         pc.sign_bias[ALTREF_FRAME] = vpx_read_bit(bc);
     }
+
+
+
 
     pc.refresh_entropy_probs = vpx_read_bit(bc);
 
@@ -825,7 +806,7 @@ function vp8_decode_frame(data, decoder) {
 
         copy_entropy_values(pc.saved_entropy, pc.entropy_hdr);
         decoder.saved_entropy_valid = 1;
-  
+
     }
 
 
@@ -836,13 +817,14 @@ function vp8_decode_frame(data, decoder) {
 
 
 
-    //decoder.token_hdr.init();
-    //INITIALIZING TOKENS
-
 
     var ctx = decoder;
     var partitions = ctx.token_hdr.partitions;
 
+    //PREDICT INIT
+    var i = 0;
+    var this_frame_mbmi = 0;
+    var this_frame_mbmi_off = 0;
 
     if (pc.frame_size_updated === 1) {
         var i = 0;
@@ -859,22 +841,12 @@ function vp8_decode_frame(data, decoder) {
         for (var i = 0; i < mb_cols; i++)
             ctx.above_token_entropy_ctx[i] = new Int32Array(9);
 
-    }
-
-
-    //PREDICT INIT
-    var i = 0;
-    var this_frame_mbmi = 0;
-    var this_frame_mbmi_off = 0;
-
-    if (pc.frame_size_updated === 1) {
-        
         var w = ((decoder.mb_cols << 4) + 32) | 0;
         var h = ((decoder.mb_rows << 4) + 32) | 0;
-            
+
         for (i = 0; i < NUM_REF_FRAMES; i++) {
 
-            
+
 
             vpx_img_free(decoder.frame_strg[i].img);
             decoder.frame_strg[i].ref_cnt = 0;
@@ -893,7 +865,11 @@ function vp8_decode_frame(data, decoder) {
             decoder.subpixel_filters = vp8_bilinear_filters;
         else
             decoder.subpixel_filters = vp8_sub_pel_filters;
+
     }
+
+
+
 
     var ref_frames = decoder.ref_frames;
     /* Find a free framebuffer to predict into */
@@ -902,7 +878,7 @@ function vp8_decode_frame(data, decoder) {
 
     ref_frames[CURRENT_FRAME] =
             vp8_dixie_find_free_ref_frame(decoder.frame_strg);
-    
+
     this_frame_mbmi = ref_frames[CURRENT_FRAME].img.img_data;
 
     /* Calculate offsets to the other reference frames */
@@ -917,7 +893,7 @@ function vp8_decode_frame(data, decoder) {
         } else {
             decoder.ref_frame_offsets[i] = 0;
             decoder.ref_frame_offsets_[i] = this_frame_mbmi;
-            
+
         }
     }
 
