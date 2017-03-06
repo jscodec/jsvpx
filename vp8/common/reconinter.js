@@ -58,14 +58,15 @@ function predict_inter_emulated_edge(ctx,
 
     output = img.y;
     output_off = img.y_off;
-    reference_offset = ctx.ref_frame_offsets[ref_frame];
-    reference = ctx.ref_frame_offsets_[ref_frame];
+
     reference_off = output_off + reference_offset;
     var mode = mbi.mbmi.y_mode;
     var mvs = mbi.bmi.mvs;
 
     reference_offset = ctx.ref_frame_offsets[ref_frame];
     reference = ctx.ref_frame_offsets_[ref_frame];
+    
+ 
 
     // Luma 
     for (b = 0; b < 16; b++) {

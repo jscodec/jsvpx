@@ -198,9 +198,6 @@ function decode_mb_rows(ctx) {
 
 
     for (var row = 0, partition = 0; row < mb_rows; row++) {
-        var start_col = 0;
-
-        
 
         
         var mbi;
@@ -221,7 +218,7 @@ function decode_mb_rows(ctx) {
         img.u_off += (img.uv_stride * row ) << 3;
         img.v_off += (img.uv_stride * row ) << 3;
         mbi = ctx.mb_info_rows; //[1 + row];
-        mbi_off = (ctx.mb_info_rows_off[1 + row] + start_col);
+        mbi_off = (ctx.mb_info_rows_off[1 + row]);
         coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
  
  
@@ -253,7 +250,7 @@ function decode_mb_rows(ctx) {
 
 
         //probably line 485
-        for (col = start_col; col <  mb_cols; col++) {
+        for (col = 0; col <  mb_cols; col++) {
             //if (col > 0) {
             
             
@@ -563,13 +560,15 @@ function init_frame(pbi) {
     var pc = pbi.common;
     var xd = pbi.segment_hdr;
 
+    var to = pc.entropy_hdr.mv_probs;
+            
     if (pc.is_keyframe === true) {
 
         for (var i = 0; i < MV_PROB_CNT; i++)
-            pc.entropy_hdr.mv_probs[0][i] = vp8_default_mv_context[0][i];
+            to[0][i] = vp8_default_mv_context[0][i];
 
         for (var i = 0; i < MV_PROB_CNT; i++)
-            pc.entropy_hdr.mv_probs[1][i] = vp8_default_mv_context[1][i];
+            to[1][i] = vp8_default_mv_context[1][i];
 
         vp8_init_mbmode_probs(pc);
         vp8_default_coef_probs(pc);
@@ -869,11 +868,13 @@ function vp8_decode_frame(data, decoder) {
     var this_frame_mbmi_off = 0;
 
     if (pc.frame_size_updated === 1) {
-
+        
+        var w = ((decoder.mb_cols << 4) + 32) | 0;
+        var h = ((decoder.mb_rows << 4) + 32) | 0;
+            
         for (i = 0; i < NUM_REF_FRAMES; i++) {
 
-            var w = ((decoder.mb_cols << 4) + 32) | 0;
-            var h = ((decoder.mb_rows << 4) + 32) | 0;
+            
 
             vpx_img_free(decoder.frame_strg[i].img);
             decoder.frame_strg[i].ref_cnt = 0;
@@ -912,9 +913,11 @@ function vp8_decode_frame(data, decoder) {
         if (ref) {
             decoder.ref_frame_offsets[i] = ref.img.img_data_off - this_frame_mbmi_off;
             decoder.ref_frame_offsets_[i] = ref.img.img_data;
+
         } else {
             decoder.ref_frame_offsets[i] = 0;
             decoder.ref_frame_offsets_[i] = this_frame_mbmi;
+            
         }
     }
 

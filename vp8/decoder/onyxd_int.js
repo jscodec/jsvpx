@@ -144,6 +144,7 @@ class VP8D_COMP {
 
 
         this.ref_frame_offsets = new Uint32Array([0, 0, 0, 0]);
+        this.ref_frame = null;
         this.ref_frame_offsets_ = [0, 0, 0, 0];
         this.subpixel_filters = null;
 
