@@ -8,6 +8,9 @@ var vp8_loop_filter_bvs_c = loopfilter_filters.vp8_loop_filter_bvs_c;
 var vp8_loop_filter_simple_vertical_edge_c = loopfilter_filters.vp8_loop_filter_simple_vertical_edge_c;
 var vp8_loop_filter_mbv = loopfilter_filters.vp8_loop_filter_mbv;
 var vp8_loop_filter_bv_c = loopfilter_filters.vp8_loop_filter_bv_c;
+var filter_mb_edge = loopfilter_filters.filter_mb_edge;
+var normal_threshold = loopfilter_filters.normal_threshold;
+var high_edge_variance = loopfilter_filters.high_edge_variance;
 
 var CURRENT_FRAME = 0;
 
@@ -21,10 +24,7 @@ var PLANE_U = VPX_PLANE_U;
 var PLANE_V = VPX_PLANE_V;
 
 var B_PRED = 4; /* block mbmid prediction, each block has its own prediction mode */
-var NEARESTMV = 5;
-var NEARMV = 6;
 var ZEROMV = 7;
-var NEWMV = 8;
 var SPLITMV = 9;
 
 
@@ -53,15 +53,23 @@ function vp8_loop_filter_row_simple(ctx, row) {
     mbi = ctx.mb_info_rows;
     mbi_off = ctx.mb_info_rows_off[1 + row];
     //console.log(mbi[mbi_off]);
+    var mb_cols = ctx.mb_cols;
 
-    for (col = 0; col < ctx.mb_cols; col++) {
+    for (col = 0; col < mb_cols; col++) {
 
 
         // TODO: only need to recalculate every MB if segmentation is
         //  enabled.
 
-        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                interior_limit, hev_threshold);
+
+        if (ctx.segment_hdr.enabled === 1 && row)
+        {
+            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+                    interior_limit, hev_threshold);
+        } else {
+            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+                    interior_limit, hev_threshold);
+        }
 
         if (edge_limit[0]) {
 
@@ -137,6 +145,16 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
 
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                 interior_limit, hev_threshold);
+
+        if (ctx.segment_hdr.enabled === 1 && row)
+        {
+            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+                    interior_limit, hev_threshold);
+        } else {
+            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+                    interior_limit, hev_threshold);
+        }
+        
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
 
 
@@ -304,83 +322,6 @@ function saturate_uint8(x) {
      return x|0;
      */
     return min(max(x, 0), 255);
-}
-
-function high_edge_variance(pixels, pixels_off, stride, hev_threshold) {
-    var p1 = pixels[pixels_off - 2 * stride];
-    var p0 = pixels[pixels_off - stride];
-    var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off + stride];
-
-
-    return abs(p1 - p0) > hev_threshold || abs(q1 - q0) > hev_threshold;
-}
-
-
-function simple_threshold(pixels, pixels_off, stride, filter_limit) {
-    var p1 = pixels[pixels_off - (stride << 1)];
-    var p0 = pixels[pixels_off - stride];
-    var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off + stride];
-
-    return ((abs(p0 - q0) * 2 + (abs(p1 - q1) >> 1)) <= filter_limit) | 0;
-}
-
-function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-    var p3 = pixels[pixels_off - 4 * stride];
-    var p2 = pixels[pixels_off - 3 * stride];
-    var p1 = pixels[pixels_off - 2 * stride];
-    var p0 = pixels[pixels_off - stride];
-    var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off + stride];
-    var q2 = pixels[pixels_off + 2 * stride];
-    var q3 = pixels[pixels_off + 3 * stride];
-
-    var E = edge_limit;
-    var I = interior_limit;
-
-    return simple_threshold(pixels, pixels_off, stride, 2 * E + I)
-            && abs(p3 - p2) <= I && abs(p2 - p1) <= I
-            && abs(p1 - p0) <= I && abs(q3 - q2) <= I
-            && abs(q2 - q1) <= I && abs(q1 - q0) <= I;
-}
-
-//vp8_mbfilter
-function filter_mb_edge(pixels, pixels_off, stride) {
-
-    var stride2 = stride << 1;
-    var stride3 = 3 * stride;
-
-    var p2 = pixels[pixels_off - stride3];
-    var p1 = pixels[pixels_off - stride2];
-    var p0 = pixels[pixels_off - stride];
-    var q0 = pixels[pixels_off];
-    var q1 = pixels[pixels_off + stride];
-    var q2 = pixels[pixels_off + stride2];
-
-    var w = 0, a = 0;
-
-    w = saturate_int8(saturate_int8(p1 - q1) + 3 * (q0 - p0));
-
-    a = (27 * w + 63) >> 7;
-    p0 = saturate_uint8(p0 + a);
-    q0 = saturate_uint8(q0 - a);
-
-    a = (18 * w + 63) >> 7;
-    p1 = saturate_uint8(p1 + a);
-    q1 = saturate_uint8(q1 - a);
-
-    a = (9 * w + 63) >> 7;
-    p2 = saturate_uint8(p2 + a);
-    q2 = saturate_uint8(q2 - a);
-
-    pixels[pixels_off - stride3] = p2;
-    pixels[pixels_off - stride2] = p1;
-    pixels[pixels_off - stride] = p0;
-    pixels[pixels_off] = q0;
-    pixels[pixels_off + stride] = q1;
-    pixels[pixels_off + stride2] = q2;
-
 }
 
 

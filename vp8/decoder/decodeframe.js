@@ -479,10 +479,10 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
 var left_reset = new Int32Array(9);
 function reset_row_context(left) {
     //console.warn(left.length);
-
-    var i = left.length;
-    while (i--)
-        left[i] = 0;
+    left.set(left_reset);
+    //var i = left.length;
+    //while (i--)
+      //  left[i] = 0;
 }
 
 

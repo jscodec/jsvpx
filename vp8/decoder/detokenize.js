@@ -49,15 +49,16 @@ var ENTROPY_NODES = 11;
  * @param {type} mode
  * @returns {null}
  */
-//var context_clear = new Uint32Array(8);
+var context_clear = new Uint32Array(8);
 function vp8_reset_mb_tokens_context(left, above, mode) {
     /* Reset the macroblock context on the left and right. We have to
      * preserve the context of the second order block if this mode
      * would not have updated it.
      */
-    //left.fill(context_clear);
-    memset(left, 0, 0, 8);
-    memset(above, 0, 0, 8);
+    left.set(context_clear);
+    above.set(context_clear);
+    //memset(left, 0, 0, 8);
+    //memset(above, 0, 0, 8);
 
 
 
@@ -138,12 +139,48 @@ function DECODE_AND_APPLYSIGN(value_to_sign) {
 }
 
 function DECODE_AND_BRANCH_IF_ZERO(probability, branch) {
-        if (!vpx_read(global_bool, probability)) {
+    if (!vpx_read(global_bool, probability)) {
+        goto_ = branch;
+        return 1;
+    }
+}
+
+function DECODE_EXTRABIT_AND_ADJUST_VAL(t, bits_count) {
+    val += vpx_read(global_bool, extrabits[t].probs[bits_count]) << bits_count;
+}
+
+
+function DECODE_AND_LOOP_IF_ZERO(probability, branch) {
+    if (!vpx_read(global_bool, probability))
+    {
+        prob_off = type_probs_off;
+        if (c < 15) {
+            ++c;
+            prob_off += bands_x[c] | 0;
             goto_ = branch;
             return 1;
+        } else {
+            goto_ = BLOCK_FINISHED;
+            return 1; /*for malformed input */
         }
     }
-    
+}
+
+function DECODE_SIGN_WRITE_COEFF_AND_CHECK_EXIT(val) {
+    DECODE_AND_APPLYSIGN(val);
+    prob_off = type_probs_off + 22;//(ENTROPY_NODES * 2)
+    if (c < 15) {
+        b_tokens[b_tokens_off + zigzag[c]] = v;
+        ++c;
+        goto_ = DO_WHILE;
+        return 1;
+    }
+    b_tokens[b_tokens_off + zigzag[15]] = v;
+    goto_ = BLOCK_FINISHED;
+    return 1;
+}
+
+
 function decode_mb_tokens(bool, left,
         above,
         tokens,
@@ -154,39 +191,10 @@ function decode_mb_tokens(bool, left,
     global_bool = bool;
 
 
-    
-    function DECODE_AND_LOOP_IF_ZERO(probability, branch) {
-        if (!vpx_read(bool, probability))
-        {
-            prob_off = type_probs_off;
-            if (c < 15) {
-                ++c;
-                prob_off += bands_x[c] | 0;
-                goto_ = branch;
-                return 1;
-            } else {
-                goto_ = BLOCK_FINISHED;
-                return 1; /*for malformed input */
-            }
-        }
-    }
-    function DECODE_SIGN_WRITE_COEFF_AND_CHECK_EXIT(val) {
-        DECODE_AND_APPLYSIGN(val);
-        prob_off = type_probs_off + 22;//(ENTROPY_NODES * 2)
-        if (c < 15) {
-            b_tokens[b_tokens_off + zigzag[c]] = v;
-            ++c;
-            goto_ = DO_WHILE;
-            return 1;
-        }
-        b_tokens[b_tokens_off + zigzag[15]] = v;
-        goto_ = BLOCK_FINISHED;
-        return 1;
-    }
 
-    function DECODE_EXTRABIT_AND_ADJUST_VAL(t, bits_count) {
-        val += vpx_read(bool, extrabits[t].probs[bits_count]) << bits_count;
-    }
+
+
+
 
 
 

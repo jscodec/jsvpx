@@ -1,6 +1,10 @@
 'use strict';
 
-var abs = Math.abs;
+//var abs = Math.abs;
+
+function abs(value ){
+    return (value ^ (value >> 31)) - (value >> 31);
+}
 var min = Math.min;
 var max = Math.max;
 
@@ -306,3 +310,6 @@ module.exports.vp8_loop_filter_simple_horizontal_edge_c = vp8_loop_filter_simple
 module.exports.vp8_loop_filter_simple_vertical_edge_c = vp8_loop_filter_simple_vertical_edge_c;
 module.exports.vp8_loop_filter_mbv = vp8_loop_filter_mbv;
 module.exports.vp8_loop_filter_bv_c = vp8_loop_filter_bv_c;
+module.exports.filter_mb_edge = filter_mb_edge;
+module.exports.normal_threshold = normal_threshold;
+module.exports.high_edge_variance = high_edge_variance;

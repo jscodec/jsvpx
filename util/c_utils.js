@@ -43,6 +43,7 @@ function memset(ptr, ptr_off, value, num) {
     var i = num;
     while (i--)
         ptr[ptr_off + i] = value;
+        
 }
 
 function memset_32(ptr, ptr_off, value, num) {
@@ -60,11 +61,13 @@ function memset_32(ptr, ptr_off, value, num) {
 }
 
 function memcpy(dst, dst_off, src, src_off, num) {
-
+    dst.set(src.subarray(src_off, src_off + num) , dst_off);
+    /*
     var i = num;
     while (i--) {
         dst[dst_off + i] = src[src_off + i];
     }
+    */
     return dst;
 
 }
