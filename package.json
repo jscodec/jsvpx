@@ -1,41 +1,42 @@
 {
-    "name": "jsvpx",
-    "version": "0.0.1",
-    "keywords": [
-        "webm",
-        "vp8",
-        "vp9",
-        "ogv.js"
-    ],
-    "description" : "Javascript implementation of libvpx",
-    "scripts": {
+  "name": "jsvpx",
+  "version": "0.0.1",
+  "keywords": [
+    "webm",
+    "vp8",
+    "vp9",
+    "ogv.js"
+  ],
+  "description": "Javascript implementation of libvpx",
+  "scripts": {
     "build": "webpack",
-        "build-benchmark": "USE_BENCHMARK=true webpack",
-        "test": "mocha test/test.js --timeout 20000"
-    },
-    "author": "Brian Parra",
-    "contributors": [
-        "Brion Vibber <brion@pobox.com>"
-    ],
-    "repository": {
+    "build-benchmark": "USE_BENCHMARK=true webpack",
+    "test": "mocha test/test.js --timeout 20000"
+  },
+  "author": "Brian Parra",
+  "contributors": [
+    "Brion Vibber <brion@pobox.com>"
+  ],
+  "repository": {
     "type": "git",
     "url": "https://github.com/jscodec/jsvpx.git"
-    },
-    "devDependencies": {
-    "browserify": "^13.0.1",
-    "browserify-shim": "^3.5.0",
-    "uglify-js": "2.7.0",
+  },
+  "devDependencies": {
     "babel-cli": "6.10.1",
     "babel-preset-es2015": "6.9.0",
+    "browserify": "^13.0.1",
+    "browserify-shim": "^3.5.0",
     "envify": "3.4.1",
-    "mocha" : "^3.1.2",
-    "js-md5" : "^0.4.1",
+    "gentelella": "^1.3.0",
+    "js-md5": "^0.4.1",
+    "jsivf": "^0.0.2",
+    "mocha": "^3.1.2",
+    "ogv": "^1.3.0",
+    "qunitjs": "^2.1.1",
+    "uglify-js": "2.7.0",
     "webpack": "^1.13.3",
-    "webpack-closure-compiler": "^2.1.3",
-    "gentelella" : "^1.3.0",
-    "jsivf" : "^0.0.2",
-     "ogv" : "^1.3.0"
+    "webpack-closure-compiler": "^2.1.3"
   },
-    "main" : "builds/jsvpx.js",
-    "license": "MIT"
+  "main": "builds/jsvpx.js",
+  "license": "MIT"
 }

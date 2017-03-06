@@ -3,6 +3,16 @@ const path = require('path');
 
 //console.log(env.USE_BENCHMARK);
 
+var BrowserTests = {
+    entry: [
+        path.join(__dirname, 'test', 'browser-tests.js')
+    ],
+    output: {
+        path: path.join(__dirname, 'test'),
+        filename: 'browser-tests.build.js'
+    }
+};
+
 var OGVVideoDecoder = {
     entry: [
         path.join(__dirname, 'build-templates', 'OGVVideoDecoder.js')
@@ -68,7 +78,7 @@ if (process.env) {
     if (process.env.USE_BENCHMARK === "true") {
         module.exports = [JsVpxBenchmark];
     } else {
-        module.exports = [OGVVideoDecoder, JsVpx];
+        module.exports = [OGVVideoDecoder, JsVpx , BrowserTests];
     }
 
 }
