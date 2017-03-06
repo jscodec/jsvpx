@@ -298,31 +298,6 @@ function calculate_filter_parameters(ctx,
 
 }
 
-function saturate_int8(x) {
-    /*
-     if (x < -128)
-     return -128 | 0;
-     
-     if (x > 127)
-     return 127 | 0;
-     */
-    return min(max(x, -128), 127);
-    // return x;
-}
-
-function saturate_uint8(x) {
-    /*
-     x = x|0;
-     if (x < 0)
-     return 0|0;
-     
-     if (x > 255)
-     return 255|0;
-     
-     return x|0;
-     */
-    return min(max(x, 0), 255);
-}
 
 
 function filter_mb_h_edge(src, src_off, stride,

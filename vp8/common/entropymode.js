@@ -138,13 +138,14 @@ function vp8_init_mbmode_probs(x) {
 
     var probs = vp8_ymode_prob;
     x.entropy_hdr.y_mode_probs_32[0] = vp8_ymode_prob_32[0];
-
+/*
     probs = vp8_uv_mode_prob;
     //for (var i = 0; i < 3; i++)
     x.entropy_hdr.uv_mode_probs[0] = probs[0];
     x.entropy_hdr.uv_mode_probs[1] = probs[1];
     x.entropy_hdr.uv_mode_probs[2] = probs[2];
-    
+    */
+    x.entropy_hdr.uv_mode_probs.set(vp8_uv_mode_prob);
 }
 
 module.exports = {};

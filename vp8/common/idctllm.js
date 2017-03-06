@@ -1,5 +1,7 @@
 'use strict';
 
+
+
 var min = Math.min;
 var max = Math.max;
 
@@ -105,10 +107,12 @@ function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
     }
 
     //var mb_dqcoeff = input;
+
     for (i = 0; i < 16; i++) {
         //coeffs[coeffs_off + i * 16] = y2[i]; //no y2_off need
         input[mb_dqcoeff_ptr + (i << 4)] = output[i];
     }
+
 }
 
 var tmp = new Int16Array(16);

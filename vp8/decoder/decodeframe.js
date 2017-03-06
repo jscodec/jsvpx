@@ -392,19 +392,6 @@ function memset_32(ptr, ptr_off, value, num) {
     }
 }
 
-function memset_coeffs(ptr, ptr_off, value, num) {
-
-    var i = num;//>> 2;
-    var ptr_off_32 = ptr_off >> 4;
-    var ptr_64 = ptr.data_64;
-
-    var num_32 = num >> 4;
-    for (var i = 0; i < num_32; i++) {
-        ptr_64[ptr_off_32 + (i >> 4)] = 0;
-    }
-
-}
-
 var coeff_clear = new Float64Array(200);
 function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coeffs_off) {
 
@@ -564,11 +551,14 @@ function init_frame(pbi) {
 
     if (pc.is_keyframe === true) {
 
-        for (var i = 0; i < MV_PROB_CNT; i++)
-            to[0][i] = vp8_default_mv_context[0][i];
+        //for (var i = 0; i < MV_PROB_CNT; i++)
+          //  to[0][i] = vp8_default_mv_context[0][i];
+        
+        to[0].set(vp8_default_mv_context[0]);
+        to[1].set(vp8_default_mv_context[1]);
 
-        for (var i = 0; i < MV_PROB_CNT; i++)
-            to[1][i] = vp8_default_mv_context[1][i];
+        //for (var i = 0; i < MV_PROB_CNT; i++)
+          //  to[1][i] = vp8_default_mv_context[1][i];
 
         vp8_init_mbmode_probs(pc);
         vp8_default_coef_probs(pc);

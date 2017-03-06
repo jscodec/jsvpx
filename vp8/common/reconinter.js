@@ -12,7 +12,6 @@ var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
 var c_utils = require('../../util/c_utils.js');
 var memset = c_utils.memset;
-var memset_32 = c_utils.memset_32;
 var memcpy = c_utils.memcpy;
 
 
