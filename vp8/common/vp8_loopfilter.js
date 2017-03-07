@@ -62,15 +62,9 @@ function vp8_loop_filter_row_simple(ctx, row) {
         //  enabled.
 
 
-        if (ctx.segment_hdr.enabled === 1 && row)
-        {
-            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                     interior_limit, hev_threshold);
-        } else {
-            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                    interior_limit, hev_threshold);
-        }
-
+                    
         if (edge_limit[0]) {
 
 
@@ -144,16 +138,7 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
         //  enabled.
 
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                interior_limit, hev_threshold);
-
-        if (ctx.segment_hdr.enabled === 1 && row)
-        {
-            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                     interior_limit, hev_threshold);
-        } else {
-            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                    interior_limit, hev_threshold);
-        }
         
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
 

@@ -20,6 +20,7 @@ testVectorRequest.open("GET", vectorFolder + vectorFile, true);
 testVectorRequest.responseType = "arraybuffer";
 
 testVectorRequest.onload = function (event) {
+    
     var demuxer = new ivf();
     var compressedFrames = [];
     demuxer.receiveBuffer(testVectorRequest.response);

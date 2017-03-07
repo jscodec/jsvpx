@@ -11560,15 +11560,9 @@
 	        //  enabled.
 
 
-	        if (ctx.segment_hdr.enabled === 1 && row)
-	        {
-	            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
+	        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
 	                    interior_limit, hev_threshold);
-	        } else {
-	            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-	                    interior_limit, hev_threshold);
-	        }
-
+	                    
 	        if (edge_limit[0]) {
 
 
@@ -11642,16 +11636,7 @@
 	        //  enabled.
 
 	        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-	                interior_limit, hev_threshold);
-
-	        if (ctx.segment_hdr.enabled === 1 && row)
-	        {
-	            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
 	                    interior_limit, hev_threshold);
-	        } else {
-	            calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-	                    interior_limit, hev_threshold);
-	        }
 	        
 	        edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
 
@@ -14514,6 +14499,7 @@
 	    var left = predict;
 	    var left_off = predict_off - 1;
 	    var above_32 = predict.data_32;
+	    
 	    var temp = (left[left_off - stride] + 2 * left[left_off] + left[left_off + stride] + 2) >> 2;
 	    above_32[predict_off >> 2] = temp | (temp << 8) | (temp << 16) | (temp << 24);
 
@@ -14601,7 +14587,7 @@
 	    pred0 = (above0 + (above1 << 1) + above2 + 2) >> 2;
 	    pred1 = (above1 + (above2 << 1) + above3 + 2) >> 2;
 	    pred2 = (above2 + (above3 << 1) + above4 + 2) >> 2;
-	    pred3 = (above3 + (above4 << 1) + above[above_off + 5] + 2) >> 2;
+	    pred3 = (above3 + (above4 << 1) + above5 + 2) >> 2;
 
 	    predict.data_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
 	    predict_off += stride;
@@ -14656,7 +14642,7 @@
 	    pred4 = (above0 + 2 * above1 + above2 + 2) >> 2;
 	    pred5 = (above1 + 2 * above2 + above3 + 2) >> 2;
 	    pred6 = (above2 + 2 * above3 + above4 + 2) >> 2;
-	    pred7 = (above3 + 2 * above4 + above[above_off + 5] + 2) >> 2;
+	    pred7 = (above3 + 2 * above4 + above5 + 2) >> 2;
 	    
 	    predict.data_32[predict_off >> 2] = pred4 | pred5 << 8 | pred6 << 16 | pred7 << 24;
 	    
