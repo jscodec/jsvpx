@@ -23,11 +23,11 @@ var OGVVideoDecoder = {
     },
 
     plugins: [
-       new ClosureCompilerPlugin({
-          compiler: {
-            compilation_level: 'SIMPLE'
-          },
-          concurrency: 3,
+        new ClosureCompilerPlugin({
+            compiler: {
+                compilation_level: 'SIMPLE'
+            },
+            concurrency: 3,
         })
     ]
 
@@ -43,11 +43,11 @@ var JsVpx = {
     },
 
     plugins: [
-       new ClosureCompilerPlugin({
-          compiler: {
-            compilation_level: 'SIMPLE'
-          },
-          concurrency: 3,
+        new ClosureCompilerPlugin({
+            compiler: {
+                compilation_level: 'SIMPLE'
+            },
+            concurrency: 3,
         })
     ]
 
@@ -55,22 +55,17 @@ var JsVpx = {
 
 var JsVpxBenchmark = {
     entry: [
-        path.join(__dirname, 'build-templates', 'jsvpx.benchmark.js')
+        path.join(__dirname, 'benchmarks', 'benchmark.js')
     ],
     output: {
-        path: path.join(__dirname, 'builds'),
-        filename: 'jsvpx.benchmark.js'
+        path: path.join(__dirname, 'benchmarks'),
+        filename: 'benchmark.build.js'
     },
-
-    plugins: [
-       new ClosureCompilerPlugin({
-          compiler: {
-            compilation_level: 'SIMPLE'
-          },
-          concurrency: 3,
-        })
-    ]
-
+    module: {
+        noParse: [
+            path.resolve(__dirname, './node_modules/benchmark/benchmark.js'),
+        ]
+    },
 };
 
 
@@ -78,7 +73,7 @@ if (process.env) {
     if (process.env.USE_BENCHMARK === "true") {
         module.exports = [JsVpxBenchmark];
     } else {
-        module.exports = [OGVVideoDecoder, JsVpx , BrowserTests];
+        module.exports = [OGVVideoDecoder, JsVpx, BrowserTests];
     }
 
 }
