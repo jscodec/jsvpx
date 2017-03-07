@@ -20,7 +20,7 @@ class BOOL_DECODER {
     }
     
     get_uint(bits){
-        return get_uint(this, bits);
+        return bool_get_uint(this, bits);
     }
     
     get_int(bits){
@@ -28,7 +28,7 @@ class BOOL_DECODER {
     }
     
     maybe_get_int(bits){
-        return maybe_get_int(this, bits);
+        return bool_maybe_get_int(this, bits);
     }
     
 }
@@ -60,6 +60,7 @@ function get_uint(bool, bits) {
 
     return z;
 }
+var bool_get_uint = get_uint;
     
 /*
  * bool_get_int
@@ -84,6 +85,7 @@ function maybe_get_int(bool, bits) {
     return vpx_read_bit(bool) ? bool.get_int(bits) : 0;
 }
 
+var bool_maybe_get_int = maybe_get_int;
 
 module.exports = {};
 module.exports.vp8dx_start_decode = vp8dx_start_decode;

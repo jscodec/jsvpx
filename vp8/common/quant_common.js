@@ -1,8 +1,8 @@
 'use strict';
 /*
  * #define MINQ 0
-#define MAXQ 127
-#define QINDEX_RANGE (MAXQ + 1)
+ #define MAXQ 127
+ #define QINDEX_RANGE (MAXQ + 1)
  */
 //QINDEX_RANGE = 128
 
@@ -48,108 +48,124 @@ var ac_qlookup =
             249, 254, 259, 264, 269, 274, 279, 284
         ]);
 
+var ac_qlookup2 = new Int32Array([8,8,9,10,12,13,15,17,18,20,21,23,24,26,27,29,31,32,34,35,37,38,40,41,43,44,46,48,49,51,52,54,55,57,58,60,62,63,65,66,68,69,71,72,74,75,77,79,80,82,83,85,86,88,89,93,96,99,102,105,108,111,114,117,120,124,127,130,133,136,139,142,145,148,151,155,158,161,164,167,170,173,176,179,184,189,193,198,203,207,212,217,221,226,230,235,240,244,249,254,258,263,268,274,280,286,292,299,305,311,317,323,330,336,342,348,354,362,370,379,385,393,401,409,416,424,432,440]);
+
 var min = Math.min;
 var max = Math.max;
 function CLAMP_255(x) {
     return  min(max(x, 0), 255);
 }
 
-function vp8_dc_quant (QIndex, Delta) {
-  var retval = 0;
+function vp8_dc_quant(QIndex, Delta) {
+    var retval = 0;
 
-  QIndex = QIndex + Delta;
+    QIndex = QIndex + Delta;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        //QIndex = 127;
+        return 157;
+    } else if (QIndex < 0) {
+        //QIndex = 0;
+        return 4;
+    }
 
-    QIndex = min(max(QIndex, 0), 127);
+
     retval = dc_qlookup[QIndex];
-  return retval;
+    return retval;
 }
 
-function vp8_dc2quant( QIndex,  Delta) {
-  var retval = 0;
+function vp8_dc2quant(QIndex, Delta) {
+    var retval = 0;
 
-  QIndex = QIndex + Delta;
+    QIndex = QIndex + Delta;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        //QIndex = 127; // 157
+        return 314;
+    } else if (QIndex < 0) {
+        //QIndex = 0;
+        return 8;
+    }
 
-  retval = dc_qlookup[QIndex] << 1;
-  return retval;
+    retval = dc_qlookup[QIndex] << 1;
+    return retval;
 }
 
-function vp8_dc_uv_quant( QIndex,  Delta) {
-  var retval = 0;
+function vp8_dc_uv_quant(QIndex, Delta) {
+    var retval = 0;
 
-  QIndex = QIndex + Delta;
+    QIndex = QIndex + Delta;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        //QIndex = 127; //157
+        return 132;
+    } else if (QIndex < 0) {
+        //QIndex = 0; // 4
+        return 4;
+    }
 
-  retval = dc_qlookup[QIndex];
+    retval = dc_qlookup[QIndex];
 
-  if (retval > 132) retval = 132;
+    if (retval > 132)
+        retval = 132;
 
-  return retval;
+    return retval;
 }
 
 function vp8_ac_yquant(QIndex) {
-  var retval = 0;
+    var retval = 0;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        return 284;
+        //QIndex = 127;
+    } else if (QIndex < 0) {
+        //QIndex = 0;//4
+        return 4;
+    }
 
-  retval = ac_qlookup[QIndex];
-  return retval;
+    retval = ac_qlookup[QIndex];
+    return retval;
 }
 
-function vp8_ac2quant( QIndex,  Delta) {
-  var retval = 0;
+function vp8_ac2quant(QIndex, Delta) {
+    var retval = 0;
 
-  QIndex = QIndex + Delta;
+    QIndex = QIndex + Delta;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        return 440;
+        //QIndex = 127;
+    } else if (QIndex < 0) {
+        //QIndex = 0;
+        return 8;
+    }
 
-  /* For all x in [0..284], x*155/100 is bitwise equal to (x*101581) >> 16.
-   * The smallest precision for that is '(x*6349) >> 12' but 16 is a good
-   * word size. */
-  retval = (ac_qlookup[QIndex] * 101581) >> 16;
+    /* For all x in [0..284], x*155/100 is bitwise equal to (x*101581) >> 16.
+     * The smallest precision for that is '(x*6349) >> 12' but 16 is a good
+     * word size. */
+    //retval = (ac_qlookup[QIndex] * 101581) >> 16;
+    retval = ac_qlookup2[QIndex];
+    //if (retval < 8)
+      //  retval = 8;
 
-  if (retval < 8) retval = 8;
-
-  return retval;
+    return retval;
 }
 
-function vp8_ac_uv_quant( QIndex,  Delta) {
-  var retval = 0;
+function vp8_ac_uv_quant(QIndex, Delta) {
+    var retval = 0;
 
-  QIndex = QIndex + Delta;
+    QIndex = QIndex + Delta;
 
-  if (QIndex > 127) {
-    QIndex = 127;
-  } else if (QIndex < 0) {
-    QIndex = 0;
-  }
+    if (QIndex > 127) {
+        //QIndex = 127;
+        return 284;
+    } else if (QIndex < 0) {
+        //QIndex = 0;
+        return 4;
+    }
 
-  retval = ac_qlookup[QIndex];
-  return retval;
+    retval = ac_qlookup[QIndex];
+    return retval;
 }
 
 

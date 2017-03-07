@@ -82,6 +82,7 @@ var vector = 'vp80-00-comprehensive-001.ivf';
 
 for (var i = 0; i < testVectors.length; i++) {
     loadTest(testVectors[i]);
+    console.warn(testVectors[i]);
 }
 
 function loadTest(vectorFile) {
