@@ -27,11 +27,8 @@ var idctllm = require('../common/idctllm.js');
 var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
 var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
-
-var min = Math.min;
-var max = Math.max;
 function CLAMP_255(x) {
-    return  min(max(x, 0), 255);
+    return Math.min(Math.max(x, 0), 255);
 }
 
 function predict_tm_16x16(predict, predict_off, stride){

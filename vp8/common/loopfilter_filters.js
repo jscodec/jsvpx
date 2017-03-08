@@ -10,13 +10,14 @@ var max = Math.max;
 
 function saturate_int8(x) {
 
-    return min(max(x, -128), 127);
+    //return min(max(x, -128), 127);
+    return Math.min(Math.max(x, -128), 127);
 
 }
 
 function saturate_uint8(x) {
-    return min(max(x, 0), 255);
-    
+    //return min(max(x, 0), 255);
+    return Math.min(Math.max(x, 0), 255);
 }
 
 //possible vp8_simple_filter

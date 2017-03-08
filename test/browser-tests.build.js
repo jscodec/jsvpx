@@ -11882,13 +11882,14 @@
 
 	function saturate_int8(x) {
 
-	    return min(max(x, -128), 127);
+	    //return min(max(x, -128), 127);
+	    return Math.min(Math.max(x, -128), 127);
 
 	}
 
 	function saturate_uint8(x) {
-	    return min(max(x, 0), 255);
-	    
+	    //return min(max(x, 0), 255);
+	    return Math.min(Math.max(x, 0), 255);
 	}
 
 	//possible vp8_simple_filter
@@ -13812,13 +13813,9 @@
 
 
 
-	var min = Math.min;
-	var max = Math.max;
 
 	function CLAMP_255(x) {
-
-	    return min(max(x, 0), 255);
-
+	    return Math.min(Math.max(x, 0), 255);
 	}
 
 	var cospi8sqrt2minus1 = 20091;
@@ -13851,7 +13848,7 @@
 	    var ip8 = 0;
 	    var ip4 = 0;
 
-	    
+	    /*
 	    //Loop 1
 	    var i0 = ip[ip_off];
 	    var i1 = ip[ip_off + 1];
@@ -13880,8 +13877,8 @@
 	    op[op_off + 4] = c1 + d1;
 	    op[op_off + 8] = a1 - b1;
 	    op[op_off + 12] = d1 - c1;
-	    ip_off++;
-	    op_off++;
+	    //ip_off++;
+	    //op_off++;
 
 	    //Loop 2
 	    a1 = (i1 + i13) | 0;
@@ -13889,12 +13886,11 @@
 	    c1 = (i5 - i9) | 0;
 	    d1 = (i1 - i13) | 0;
 
-	    op[op_off] = a1 + b1;
-	    op[op_off + 4] = c1 + d1;
-	    op[op_off + 8] = a1 - b1;
-	    op[op_off + 12] = d1 - c1;
-	    ip_off++;
-	    op_off++;
+	    op[op_off + 1] = a1 + b1;
+	    op[op_off + 5] = c1 + d1;
+	    op[op_off + 9] = a1 - b1;
+	    op[op_off + 13] = d1 - c1;
+
 
 	    //Loop 3
 	    a1 = (i2 + i14) | 0;
@@ -13902,12 +13898,11 @@
 	    c1 = (i6 - i10) | 0;
 	    d1 = (i2 - i14) | 0;
 
-	    op[op_off] = a1 + b1;
-	    op[op_off + 4] = c1 + d1;
-	    op[op_off + 8] = a1 - b1;
-	    op[op_off + 12] = d1 - c1;
-	    ip_off++;
-	    op_off++;
+	    op[op_off + 2] = a1 + b1;
+	    op[op_off + 6] = c1 + d1;
+	    op[op_off + 10] = a1 - b1;
+	    op[op_off + 14] = d1 - c1;
+	    
 
 
 	    //Loop 4
@@ -13916,14 +13911,13 @@
 	    c1 = (i7 - i11) | 0;
 	    d1 = (i3 - i15) | 0;
 
-	    op[op_off] = a1 + b1;
-	    op[op_off + 4] = c1 + d1;
-	    op[op_off + 8] = a1 - b1;
-	    op[op_off + 12] = d1 - c1;
-	    ip_off++;
-	    op_off++;
-	    /*  
-	    for (i = 1; i < 4; i++)
+	    op[op_off + 3] = a1 + b1;
+	    op[op_off + 7] = c1 + d1;
+	    op[op_off + 11] = a1 - b1;
+	    op[op_off + 15] = d1 - c1;
+	*/
+	    
+	    for (i = 0; i < 4; i++)
 	    {
 	        ip0 = ip[ip_off];
 	        ip4 = ip[ip_off + 4];
@@ -13943,7 +13937,10 @@
 	        ip_off++;
 	        op_off++;
 	    }
-	*/
+
+	    //ip_off += 3;
+	    //op_off += 3;
+	    
 	    ip = output;
 	    ip_off = output_off;
 	    op = output;
@@ -13980,13 +13977,14 @@
 	        ip_off += 4;
 	        op_off += 4;
 	    }*/
-
+	    var output_off_32 = op_off >> 1;
+	    var ip_off_32 = ip_off >> 1;
 	    //Loop 1
-	    ip_32 = data_32[ip_off >> 1];
+	    ip_32 = data_32[ip_off_32];
 	    ip1 = ((ip_32 >> 16));
 	    ip0 = ((ip_32 << 16) >> 16);
 
-	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip_32 = data_32[ip_off_32 + 1];
 	    ip3 = ((ip_32 >> 16));
 	    ip2 = ((ip_32 << 16) >> 16);
 
@@ -14000,19 +13998,17 @@
 	    c2 = a1 - b1;
 	    d2 = d1 - c1;
 
-	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
-	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+	    output_32[output_off_32] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
 
 
-	    ip_off += 4;
-	    op_off += 4;
 
 	    //Loop 2
-	    ip_32 = data_32[ip_off >> 1];
+	    ip_32 = data_32[ip_off_32 + 2];
 	    ip1 = ((ip_32 >> 16));
 	    ip0 = ((ip_32 << 16) >> 16);
 
-	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip_32 = data_32[ip_off_32 + 3];
 	    ip3 = ((ip_32 >> 16));
 	    ip2 = ((ip_32 << 16) >> 16);
 
@@ -14026,19 +14022,18 @@
 	    c2 = a1 - b1;
 	    d2 = d1 - c1;
 
-	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
-	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 2] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 3] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
 
 
-	    ip_off += 4;
-	    op_off += 4;
+
 
 	    //Loop 3
-	    ip_32 = data_32[ip_off >> 1];
+	    ip_32 = data_32[ip_off_32 + 4];
 	    ip1 = ((ip_32 >> 16));
 	    ip0 = ((ip_32 << 16) >> 16);
 
-	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip_32 = data_32[ip_off_32 + 5];
 	    ip3 = ((ip_32 >> 16));
 	    ip2 = ((ip_32 << 16) >> 16);
 
@@ -14052,19 +14047,17 @@
 	    c2 = a1 - b1;
 	    d2 = d1 - c1;
 
-	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
-	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 4] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 5] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
 
 
-	    ip_off += 4;
-	    op_off += 4;
 
 	    //loop 4
-	    ip_32 = data_32[ip_off >> 1];
+	    ip_32 = data_32[ip_off_32 + 6];
 	    ip1 = ((ip_32 >> 16));
 	    ip0 = ((ip_32 << 16) >> 16);
 
-	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip_32 = data_32[ip_off_32 + 7];
 	    ip3 = ((ip_32 >> 16));
 	    ip2 = ((ip_32 << 16) >> 16);
 
@@ -14078,12 +14071,10 @@
 	    c2 = a1 - b1;
 	    d2 = d1 - c1;
 
-	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
-	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 6] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[output_off_32 + 7] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
 
 
-	    ip_off += 4;
-	    op_off += 4;
 
 	    //var mb_dqcoeff = input;
 
@@ -14249,11 +14240,8 @@
 	var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
 	var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
-
-	var min = Math.min;
-	var max = Math.max;
 	function CLAMP_255(x) {
-	    return  min(max(x, 0), 255);
+	    return Math.min(Math.max(x, 0), 255);
 	}
 
 	function predict_tm_16x16(predict, predict_off, stride){
