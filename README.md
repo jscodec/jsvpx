@@ -23,6 +23,8 @@ Looking to try some interesting things with webworkers, or perhaps some GPU.
   * Added browser unit tests in test folder : http://jscodec.com/jsvpx-tests/
   * Added comprehensive benchmark tool : http://jscodec.com/jsvpx-benchmark/
   * Various Bug Fixes
+  * Better memory handling
+  * Improved dequantization
 
 ### Current TODO
 * Figure out whats causing the slow parts, (Probably splitmode prediction)
