@@ -385,6 +385,7 @@ function predict_vr_4x4(predict, predict_off, stride) {
     var above1 = (above_32 >> 8) & 0xFF;
     var above2 = (above_32 >> 16) & 0xFF;
     var above3 = (above_32 >> 24) & 0xFF;
+    var above_m1 = above[above_off - 1];
     
     var left0 = left[left_off + 0];
 
@@ -396,8 +397,8 @@ function predict_vr_4x4(predict, predict_off, stride) {
     predict.data_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
     predict_off += stride;
 
-    pred4 = (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
-    pred5 = (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
+    pred4 = (left[left_off + 0] + 2 * above_m1 + above0 + 2) >> 2;
+    pred5 = (above_m1 + 2 * above0 + above1 + 2) >> 2;
     pred6 = (above0 + 2 * above1 + above2 + 2) >> 2;
     pred7 = (above1 + 2 * above2 + above[above_off + 3] + 2) >> 2;
     

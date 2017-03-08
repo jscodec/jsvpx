@@ -55,6 +55,8 @@ function vp8_loop_filter_row_simple(ctx, row) {
     //console.log(mbi[mbi_off]);
     var mb_cols = ctx.mb_cols;
 
+        
+
     for (col = 0; col < mb_cols; col++) {
 
 
@@ -63,8 +65,10 @@ function vp8_loop_filter_row_simple(ctx, row) {
 
 
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                    interior_limit, hev_threshold);
-                    
+                interior_limit, hev_threshold);
+
+
+
         if (edge_limit[0]) {
 
 

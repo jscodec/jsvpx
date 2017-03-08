@@ -71,7 +71,7 @@ class token_decoder {
     constructor() {
         this.bool = new BoolDecoder();
         this.left_token_entropy_ctx = new Int32Array(9);
-        this.coeffs = 0;
+        this.coeffs = null;
     }
 
 }

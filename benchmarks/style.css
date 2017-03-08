@@ -1,0 +1,104 @@
+.home{
+    background-color: #F27127;
+    border-width: 0 0 2px 0;
+    border-style: solid;
+    border-color: #2a2a2a;
+}
+
+.text-center{
+    textalign:center;
+}
+
+.jumbotron{
+    background:transparent;
+}
+
+.top{
+    background-color: #F27127;
+}
+
+section{
+    padding : 100px 0;
+}
+
+.controls{
+    background-color: #2a2a2a;
+}
+
+#gear{
+    font-size : 150px;
+    display: none;
+}
+
+.result-title{
+    font-weight: bolder;
+    font-size: 20px;
+}
+
+.result-value{
+    font-size: 20px;
+}
+
+@-webkit-keyframes spin {  
+from {  
+    -webkit-transform: rotate(0deg);  
+}  
+to {  
+    -webkit-transform: rotate(360deg);  
+    } 
+}
+
+#gear {
+
+    -webkit-animation-name: spin; 
+    -webkit-animation-iteration-count: infinite; 
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-duration: 3s; 
+}
+/**********************************
+* BUTTONS
+**********************************/
+
+
+.btn-outline{
+    display: inline-block;
+    background: #f6f6f6;
+    margin: 15px 0;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.btn-flare{
+    transition: all 0.3s ease;
+    background: #F27127;
+    border-color: #F27127;
+    color: #2a2a2a;
+    font-weight: bold;
+    font-size: 36px;
+    padding: 10px 32px;
+    white-space: normal;
+}
+
+.btn-flare:hover{
+    background: #2a2a2a;
+    border-color: #2a2a2a;
+    color: #F27127;
+}
+
+.btn-flare-light{
+    transition: all 0.3s ease;
+    background: white;
+    border-color: white;
+    color: #2a2a2a;
+    font-weight: bold;
+    font-size: 36px;
+    padding: 10px 32px;
+    white-space: normal;
+}
+
+.btn-flare-light:hover{
+    background: #2a2a2a;
+    border-color: white;
+    color: white;
+}
+

@@ -413,10 +413,8 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
     if (mbi.mbmi.need_mc_border === 1) {
         var x = uvmv.as_row_col[0];
         var y = uvmv.as_row_col[1] ;
-        uvmv.as_row_col[0] = (x + 1 + ((x >> 31) << 1));
-        uvmv.as_row_col[1] = (y + 1 + ((y >> 31) << 1));
-        uvmv.as_row_col[0] /= 2;
-        uvmv.as_row_col[1] /= 2;
+        uvmv.as_row_col[0] = (x + 1 + ((x >> 31) << 1)) / 2;
+        uvmv.as_row_col[1] = (y + 1 + ((y >> 31) << 1)) / 2;
 
     } else {
         uvmv.as_row_col[0] = (uvmv.as_row_col[0] + 1) >> 1;

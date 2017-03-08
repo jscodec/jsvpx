@@ -18,7 +18,7 @@ var memset = c_utils.memset;
         //console.warn(img.y_off - img.stride - 1);
     }
  */
-
+//var dc_pred_set = new Uint8Array([129,129,129,129,129,129,129,129,129,129,129,129,129,129,129,129]);
 function vp8_setup_intra_recon(predict, y_off, u_off, v_off, y_stride, uv_stride) {
     //The left column of out-of-frame pixels is taken to be 129,
     // unless we're doing DC_PRED, in which case we duplicate the
@@ -33,10 +33,11 @@ function vp8_setup_intra_recon(predict, y_off, u_off, v_off, y_stride, uv_stride
      */
     y_off -= y_stride;
 
-    for (i = -1; i < 16; i++) {
-        y_buffer[y_off] = 129;
-        y_off += y_stride;
-    }
+    //for (i = -1; i < 16; i++) {
+        //y_buffer[y_off] = 129;
+        //y_buffer.set(dc_pred_set, y_off);
+      //  y_off += y_stride;
+    //}
     
     /*
     var u_buffer = predict;

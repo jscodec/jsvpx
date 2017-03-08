@@ -1,6 +1,8 @@
 # jsvpx
 
-A Javascript libvpx implementation.
+jsvpx is a full implementation of libvpx in Javascript. In contrast to other crosscompiled decoders, jsvpx is fully written in Javascript.
+  
+The reason for a full reimplementation as opposed to a simple cross compile, is because video decoding computation is very repetative, and as of now, cross compiled modules can only be single threaded. The project is still in early stages, but now ready to expore multithreading options including WebWorkers or WebGL, possible SIMD, even though it may only work for FireFox (at least for the near future).
 
 ## Project Status
 Vp8 is now working! Still in experimental stages. Output hashes finally match the vp8 test vectors.
@@ -17,7 +19,10 @@ Currently moving towards the direction of the main branch.
 Looking to try some interesting things with webworkers, or perhaps some GPU.
 
 ### ChangeLog
-* Added browser unit tests in test folder : http://jscodec.com/jsvpx-tests/
+* v0.0.2
+  * Added browser unit tests in test folder : http://jscodec.com/jsvpx-tests/
+  * Added comprehensive benchmark tool : http://jscodec.com/jsvpx-benchmark/
+  * Various Bug Fixes
 
 ### Current TODO
 * Figure out whats causing the slow parts, (Probably splitmode prediction)

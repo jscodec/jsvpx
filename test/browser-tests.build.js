@@ -9588,7 +9588,7 @@
 	    constructor() {
 	        this.bool = new BoolDecoder();
 	        this.left_token_entropy_ctx = new Int32Array(9);
-	        this.coeffs = 0;
+	        this.coeffs = null;
 	    }
 
 	}
@@ -10787,7 +10787,13 @@
 	        img.v_off += (img.uv_stride * row) << 3;
 	        mbi = ctx.mb_info_rows; //[1 + row];
 	        mbi_off = (ctx.mb_info_rows_off[1 + row]);
+	        //coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
 	        coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
+	        
+	        //if (ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs === null) {
+	            //console.warn(ctx.tokens);
+	            
+	        //}
 
 
 
@@ -10960,7 +10966,7 @@
 	    }
 	}
 
-	var coeff_clear = new Float64Array(200);
+	var coeff_clear = new Uint8Array(400);
 	function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coeffs_off) {
 
 	    var tokens = ctx.tokens[partition];
@@ -10981,13 +10987,29 @@
 	    var mbi_cache = mbi[mbi_off];
 	    var mbmi_cache = mbi_cache.mbmi;
 
-	    //memset(coeffs, coeffs_off, 0, 400);
-	    var copy_dest = coeffs.data_64;
-	    copy_dest.set(coeff_clear);
+	 
+	    //wtf why!?!?!?!
 	    /*
-	     for(var c = 0; c < 200; c++){
-	     copy_dest[c] = 0;
-	     }*/
+	    if (coeffs === null) {
+	        //throw "coeff data missing";
+	        console.warn("Missing partition " + partition + " : " + ctx.token_hdr.partitions);
+	        coeffs = new Uint32Array(ctx.mb_cols * 400);
+	        //coeffs.data_64 = new Float64Array(coeffs.buffer);
+	    } else {
+	        var copy_dest = coeffs.data_64;
+	        copy_dest.set(coeff_clear);
+	    }
+	    */
+	    var copy_dest = coeffs.data_64;
+	      //  copy_dest.set(coeff_clear);
+	           //coeffs.set(coeff_clear); 
+	    //var copy_dest = coeffs.data_64;
+	            //copy_dest.set(coeff_clear);
+	    //memset(coeffs, coeffs_off, 0, 400);
+
+	    for (var c = 0; c < 200; c++) {
+	        copy_dest[c] = 0;
+	    }
 
 
 
@@ -11044,12 +11066,17 @@
 
 
 	function setup_token_decoder(hdr, data, ptr, sz) {
-
+	    var partition_change = 0;
 	    var i = 0;
 	    var decoder = hdr.decoder;
 	    var bool = decoder.boolDecoder;
-	    hdr.partitions = 1 << bool.get_uint(2);
-	    var partitions = hdr.partitions;//cache 
+	    var partitions = 1 << bool.get_uint(2);
+	    //console.warn("New partitions : " + partitions);
+	    if(hdr.partitions !== partitions)
+	        partition_change = 1;
+	    
+	    hdr.partitions  = partitions;
+	    //var partitions = hdr.partitions;//cache 
 
 	    if (sz < 3 * (partitions - 1))
 	        throw "Truncated packet found parsing partition lenghts";
@@ -11076,6 +11103,7 @@
 	        vp8dx_start_decode(decoder.tokens[i].bool, data, ptr, hdr.partition_sz[i]);
 	        ptr += hdr.partition_sz[i];
 	    }
+	    return partition_change;
 	}
 
 
@@ -11304,7 +11332,7 @@
 
 
 
-	    setup_token_decoder(decoder.token_hdr, data, data.ptr + first_partition_length_in_bytes,
+	    var partition_change = setup_token_decoder(decoder.token_hdr, data, data.ptr + first_partition_length_in_bytes,
 	            sz - first_partition_length_in_bytes);
 
 
@@ -11383,20 +11411,22 @@
 	    var i = 0;
 	    var this_frame_mbmi = 0;
 	    var this_frame_mbmi_off = 0;
+	    var coeff_row_sz = ctx.mb_cols * 400;
 
 	    if (pc.frame_size_updated === 1) {
+	        //console.warn("Frame size updated");
 	        var i = 0;
-	        var coeff_row_sz = ctx.mb_cols * 400;
+	        
 
 	        for (i = 0; i < partitions; i++) {
-	            ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
-	            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+	            //ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
+	            //ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
 	        }
 
 	        var mb_cols = ctx.mb_cols;
 	        //ENTROPY_CONTEXT_PLANES
 	        ctx.above_token_entropy_ctx = new Array(mb_cols);
-	        for (var i = 0; i < mb_cols; i++)
+	        for ( i = 0; i < mb_cols; i++)
 	            ctx.above_token_entropy_ctx[i] = new Int32Array(9);
 
 	        var w = ((decoder.mb_cols << 4) + 32) | 0;
@@ -11404,13 +11434,9 @@
 
 	        for (i = 0; i < NUM_REF_FRAMES; i++) {
 
-
-
 	            vpx_img_free(decoder.frame_strg[i].img);
 	            decoder.frame_strg[i].ref_cnt = 0;
 	            decoder.ref_frames[i] = null;
-
-
 
 	            img_alloc_helper(decoder.frame_strg[i].img, VPX_IMG_FMT_I420, w, h, 16);
 
@@ -11424,6 +11450,14 @@
 	        else
 	            decoder.subpixel_filters = vp8_sub_pel_filters;
 
+	    }
+	    
+	    if(pc.frame_size_updated === 1 || partition_change === 1){
+	        //console.log("Partition changing : " + partitions);
+	        for (i = 0; i < partitions; i++) {
+	            ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
+	            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+	        }
 	    }
 
 
@@ -11556,6 +11590,8 @@
 	    //console.log(mbi[mbi_off]);
 	    var mb_cols = ctx.mb_cols;
 
+	        
+
 	    for (col = 0; col < mb_cols; col++) {
 
 
@@ -11564,8 +11600,10 @@
 
 
 	        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-	                    interior_limit, hev_threshold);
-	                    
+	                interior_limit, hev_threshold);
+
+
+
 	        if (edge_limit[0]) {
 
 
@@ -12750,14 +12788,7 @@
 /***/ function(module, exports) {
 
 	'use strict';
-	/*
-	 * #define MINQ 0
-	 #define MAXQ 127
-	 #define QINDEX_RANGE (MAXQ + 1)
-	 */
-	//QINDEX_RANGE = 128
 
-	//dc_q_lookup
 	var dc_qlookup =
 	        new Int32Array([
 	            4, 5, 6, 7, 8, 9, 10, 10,
@@ -12776,6 +12807,26 @@
 	            104, 106, 108, 110, 112, 114, 116, 118,
 	            122, 124, 126, 128, 130, 132, 134, 136,
 	            138, 140, 143, 145, 148, 151, 154, 157
+	        ]);
+
+	var dc_qlookup2 =
+	        new Int32Array([
+	            4, 5, 6, 7, 8, 9, 10, 10,
+	            11, 12, 13, 14, 15, 16, 17, 17,
+	            18, 19, 20, 20, 21, 21, 22, 22,
+	            23, 23, 24, 25, 25, 26, 27, 28,
+	            29, 30, 31, 32, 33, 34, 35, 36,
+	            37, 37, 38, 39, 40, 41, 42, 43,
+	            44, 45, 46, 46, 47, 48, 49, 50,
+	            51, 52, 53, 54, 55, 56, 57, 58,
+	            59, 60, 61, 62, 63, 64, 65, 66,
+	            67, 68, 69, 70, 71, 72, 73, 74,
+	            75, 76, 76, 77, 78, 79, 80, 81,
+	            82, 83, 84, 85, 86, 87, 88, 89,
+	            91, 93, 95, 96, 98, 100, 101, 102,
+	            104, 106, 108, 110, 112, 114, 116, 118,
+	            122, 124, 126, 128, 130, 132, 132, 132,
+	            132, 132, 132, 132, 132, 132, 132, 132
 	        ]);
 
 	//ac_q_lookup
@@ -12801,11 +12852,6 @@
 
 	var ac_qlookup2 = new Int32Array([8,8,9,10,12,13,15,17,18,20,21,23,24,26,27,29,31,32,34,35,37,38,40,41,43,44,46,48,49,51,52,54,55,57,58,60,62,63,65,66,68,69,71,72,74,75,77,79,80,82,83,85,86,88,89,93,96,99,102,105,108,111,114,117,120,124,127,130,133,136,139,142,145,148,151,155,158,161,164,167,170,173,176,179,184,189,193,198,203,207,212,217,221,226,230,235,240,244,249,254,258,263,268,274,280,286,292,299,305,311,317,323,330,336,342,348,354,362,370,379,385,393,401,409,416,424,432,440]);
 
-	var min = Math.min;
-	var max = Math.max;
-	function CLAMP_255(x) {
-	    return  min(max(x, 0), 255);
-	}
 
 	function vp8_dc_quant(QIndex, Delta) {
 	    var retval = 0;
@@ -12813,16 +12859,12 @@
 	    QIndex = QIndex + Delta;
 
 	    if (QIndex > 127) {
-	        //QIndex = 127;
 	        return 157;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0;
 	        return 4;
 	    }
 
-
-	    retval = dc_qlookup[QIndex];
-	    return retval;
+	    return dc_qlookup[QIndex];
 	}
 
 	function vp8_dc2quant(QIndex, Delta) {
@@ -12831,10 +12873,8 @@
 	    QIndex = QIndex + Delta;
 
 	    if (QIndex > 127) {
-	        //QIndex = 127; // 157
 	        return 314;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0;
 	        return 8;
 	    }
 
@@ -12848,19 +12888,12 @@
 	    QIndex = QIndex + Delta;
 
 	    if (QIndex > 127) {
-	        //QIndex = 127; //157
 	        return 132;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0; // 4
 	        return 4;
 	    }
 
-	    retval = dc_qlookup[QIndex];
-
-	    if (retval > 132)
-	        retval = 132;
-
-	    return retval;
+	    return dc_qlookup2[QIndex];
 	}
 
 	function vp8_ac_yquant(QIndex) {
@@ -12868,14 +12901,11 @@
 
 	    if (QIndex > 127) {
 	        return 284;
-	        //QIndex = 127;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0;//4
 	        return 4;
 	    }
 
-	    retval = ac_qlookup[QIndex];
-	    return retval;
+	    return ac_qlookup[QIndex];
 	}
 
 	function vp8_ac2quant(QIndex, Delta) {
@@ -12885,21 +12915,11 @@
 
 	    if (QIndex > 127) {
 	        return 440;
-	        //QIndex = 127;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0;
 	        return 8;
 	    }
-
-	    /* For all x in [0..284], x*155/100 is bitwise equal to (x*101581) >> 16.
-	     * The smallest precision for that is '(x*6349) >> 12' but 16 is a good
-	     * word size. */
-	    //retval = (ac_qlookup[QIndex] * 101581) >> 16;
-	    retval = ac_qlookup2[QIndex];
-	    //if (retval < 8)
-	      //  retval = 8;
-
-	    return retval;
+	    
+	    return ac_qlookup2[QIndex];
 	}
 
 	function vp8_ac_uv_quant(QIndex, Delta) {
@@ -12908,15 +12928,12 @@
 	    QIndex = QIndex + Delta;
 
 	    if (QIndex > 127) {
-	        //QIndex = 127;
 	        return 284;
 	    } else if (QIndex < 0) {
-	        //QIndex = 0;
 	        return 4;
 	    }
 
-	    retval = ac_qlookup[QIndex];
-	    return retval;
+	    return ac_qlookup[QIndex];
 	}
 
 
@@ -13347,10 +13364,8 @@
 	    if (mbi.mbmi.need_mc_border === 1) {
 	        var x = uvmv.as_row_col[0];
 	        var y = uvmv.as_row_col[1] ;
-	        uvmv.as_row_col[0] = (x + 1 + ((x >> 31) << 1));
-	        uvmv.as_row_col[1] = (y + 1 + ((y >> 31) << 1));
-	        uvmv.as_row_col[0] /= 2;
-	        uvmv.as_row_col[1] /= 2;
+	        uvmv.as_row_col[0] = (x + 1 + ((x >> 31) << 1)) / 2;
+	        uvmv.as_row_col[1] = (y + 1 + ((y >> 31) << 1)) / 2;
 
 	    } else {
 	        uvmv.as_row_col[0] = (uvmv.as_row_col[0] + 1) >> 1;
@@ -14405,6 +14420,7 @@
 	    var above1 = (above_32 >> 8) & 0xFF;
 	    var above2 = (above_32 >> 16) & 0xFF;
 	    var above3 = (above_32 >> 24) & 0xFF;
+	    var above_m1 = above[above_off - 1];
 	    
 	    var left0 = left[left_off + 0];
 
@@ -14416,8 +14432,8 @@
 	    predict.data_32[predict_off >> 2] = pred0 | (pred1 << 8) | (pred2 << 16) | (pred3 << 24);
 	    predict_off += stride;
 
-	    pred4 = (left[left_off + 0] + 2 * above[above_off - 1] + above0 + 2) >> 2;
-	    pred5 = (above[above_off - 1] + 2 * above0 + above1 + 2) >> 2;
+	    pred4 = (left[left_off + 0] + 2 * above_m1 + above0 + 2) >> 2;
+	    pred5 = (above_m1 + 2 * above0 + above1 + 2) >> 2;
 	    pred6 = (above0 + 2 * above1 + above2 + 2) >> 2;
 	    pred7 = (above1 + 2 * above2 + above[above_off + 3] + 2) >> 2;
 	    

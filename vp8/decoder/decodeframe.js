@@ -219,7 +219,13 @@ function decode_mb_rows(ctx) {
         img.v_off += (img.uv_stride * row) << 3;
         mbi = ctx.mb_info_rows; //[1 + row];
         mbi_off = (ctx.mb_info_rows_off[1 + row]);
+        //coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
         coeffs = ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs;
+        
+        //if (ctx.tokens[row & (ctx.token_hdr.partitions - 1)].coeffs === null) {
+            //console.warn(ctx.tokens);
+            
+        //}
 
 
 
@@ -392,7 +398,7 @@ function memset_32(ptr, ptr_off, value, num) {
     }
 }
 
-var coeff_clear = new Float64Array(200);
+var coeff_clear = new Uint8Array(400);
 function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coeffs_off) {
 
     var tokens = ctx.tokens[partition];
@@ -413,13 +419,29 @@ function decode_macroblock(ctx, partition, row, start_col, img, xd, coeffs, coef
     var mbi_cache = mbi[mbi_off];
     var mbmi_cache = mbi_cache.mbmi;
 
-    //memset(coeffs, coeffs_off, 0, 400);
-    var copy_dest = coeffs.data_64;
-    copy_dest.set(coeff_clear);
+ 
+    //wtf why!?!?!?!
     /*
-     for(var c = 0; c < 200; c++){
-     copy_dest[c] = 0;
-     }*/
+    if (coeffs === null) {
+        //throw "coeff data missing";
+        console.warn("Missing partition " + partition + " : " + ctx.token_hdr.partitions);
+        coeffs = new Uint32Array(ctx.mb_cols * 400);
+        //coeffs.data_64 = new Float64Array(coeffs.buffer);
+    } else {
+        var copy_dest = coeffs.data_64;
+        copy_dest.set(coeff_clear);
+    }
+    */
+    var copy_dest = coeffs.data_64;
+      //  copy_dest.set(coeff_clear);
+           //coeffs.set(coeff_clear); 
+    //var copy_dest = coeffs.data_64;
+            //copy_dest.set(coeff_clear);
+    //memset(coeffs, coeffs_off, 0, 400);
+
+    for (var c = 0; c < 200; c++) {
+        copy_dest[c] = 0;
+    }
 
 
 
@@ -476,12 +498,17 @@ function reset_row_context(left) {
 
 
 function setup_token_decoder(hdr, data, ptr, sz) {
-
+    var partition_change = 0;
     var i = 0;
     var decoder = hdr.decoder;
     var bool = decoder.boolDecoder;
-    hdr.partitions = 1 << bool.get_uint(2);
-    var partitions = hdr.partitions;//cache 
+    var partitions = 1 << bool.get_uint(2);
+    //console.warn("New partitions : " + partitions);
+    if(hdr.partitions !== partitions)
+        partition_change = 1;
+    
+    hdr.partitions  = partitions;
+    //var partitions = hdr.partitions;//cache 
 
     if (sz < 3 * (partitions - 1))
         throw "Truncated packet found parsing partition lenghts";
@@ -508,6 +535,7 @@ function setup_token_decoder(hdr, data, ptr, sz) {
         vp8dx_start_decode(decoder.tokens[i].bool, data, ptr, hdr.partition_sz[i]);
         ptr += hdr.partition_sz[i];
     }
+    return partition_change;
 }
 
 
@@ -736,7 +764,7 @@ function vp8_decode_frame(data, decoder) {
 
 
 
-    setup_token_decoder(decoder.token_hdr, data, data.ptr + first_partition_length_in_bytes,
+    var partition_change = setup_token_decoder(decoder.token_hdr, data, data.ptr + first_partition_length_in_bytes,
             sz - first_partition_length_in_bytes);
 
 
@@ -815,20 +843,22 @@ function vp8_decode_frame(data, decoder) {
     var i = 0;
     var this_frame_mbmi = 0;
     var this_frame_mbmi_off = 0;
+    var coeff_row_sz = ctx.mb_cols * 400;
 
     if (pc.frame_size_updated === 1) {
+        //console.warn("Frame size updated");
         var i = 0;
-        var coeff_row_sz = ctx.mb_cols * 400;
+        
 
         for (i = 0; i < partitions; i++) {
-            ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
-            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+            //ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
+            //ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
         }
 
         var mb_cols = ctx.mb_cols;
         //ENTROPY_CONTEXT_PLANES
         ctx.above_token_entropy_ctx = new Array(mb_cols);
-        for (var i = 0; i < mb_cols; i++)
+        for ( i = 0; i < mb_cols; i++)
             ctx.above_token_entropy_ctx[i] = new Int32Array(9);
 
         var w = ((decoder.mb_cols << 4) + 32) | 0;
@@ -836,13 +866,9 @@ function vp8_decode_frame(data, decoder) {
 
         for (i = 0; i < NUM_REF_FRAMES; i++) {
 
-
-
             vpx_img_free(decoder.frame_strg[i].img);
             decoder.frame_strg[i].ref_cnt = 0;
             decoder.ref_frames[i] = null;
-
-
 
             img_alloc_helper(decoder.frame_strg[i].img, VPX_IMG_FMT_I420, w, h, 16);
 
@@ -856,6 +882,14 @@ function vp8_decode_frame(data, decoder) {
         else
             decoder.subpixel_filters = vp8_sub_pel_filters;
 
+    }
+    
+    if(pc.frame_size_updated === 1 || partition_change === 1){
+        //console.log("Partition changing : " + partitions);
+        for (i = 0; i < partitions; i++) {
+            ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
+            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+        }
     }
 
 
