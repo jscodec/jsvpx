@@ -13805,8 +13805,16 @@
 
 	'use strict';
 
+	var vp8_short_inv_walsh4x4_c;
 
+	if(typeof SIMD !== 'undefined'){
+	    console.warn('simd');
+	    vp8_short_inv_walsh4x4_c = vp8_short_inv_walsh4x4_simd;
 
+	}else{
+	    console.warn('no simd');
+	    vp8_short_inv_walsh4x4_c = vp8_short_inv_walsh4x4_js;
+	}
 
 	function CLAMP_255(x) {
 	    return Math.min(Math.max(x, 0), 255);
@@ -13814,14 +13822,130 @@
 
 	var cospi8sqrt2minus1 = 20091;
 	var sinpi8sqrt2 = 35468; // (<<15 + 2700)
-	var output = new Int16Array(16);
+	var output = new Int16Array(20);
 	var output_32 = new Uint32Array(output.buffer);
 	var output_32_i = new Int32Array(output.buffer);
 	output.data_32 = output_32;
 	output.data_32_i = output_32_i;
+
+	function vp8_short_inv_walsh4x4_simd(input, input_off, mb_dqcoeff_ptr) {
+
+	    //var mb_dqcoeff_ptr = input_off;
+
+	    var output_off = 0;
+	    var i;
+	    var a1, b1, c1, d1;
+	    var a2, b2, c2, d2;
+	    var ip = input;
+	    var ip_off = input_off;
+	    var op = output;
+	    var op_off = 0;
+
+	    var ip0 = 0;
+	    var ip1 = 0;
+	    var ip2 = 0;
+	    var ip3 = 0;
+	    var ip12 = 0;
+	    var ip8 = 0;
+	    var ip4 = 0;
+
+	    for (i = 0; i < 4; i++)
+	    {
+	        ip0 = ip[ip_off];
+	        ip4 = ip[ip_off + 4];
+	        ip8 = ip[ip_off + 8];
+	        ip12 = ip[ip_off + 12];
+
+
+	        a1 = (ip0 + ip12) | 0;
+	        b1 = (ip4 + ip8) | 0;
+	        c1 = (ip4 - ip8) | 0;
+	        d1 = (ip0 - ip12) | 0;
+
+	        op[op_off] = a1 + b1;
+	        op[op_off + 4] = c1 + d1;
+	        op[op_off + 8] = a1 - b1;
+	        op[op_off + 12] = d1 - c1;
+	        ip_off++;
+	        op_off++;
+	    }
+
+
+	    
+	    ip = output;
+	    ip_off = output_off;
+	    op = output;
+	    op_off = output_off;
+
+	    var data_32 = ip.data_32;
+	    var ip_32 = 0;
+	    //SIMD here
+	    
+	    var input_simd;
+	    var temp_3_simd = SIMD.Int16x8.splat(3);
+	    var tmp_simd;
+	    
+	    for (i = 0; i < 4; i++)
+	    {
+	        //input_simd = SIMD.Int16x8.load(ip, 0);
+	        
+	        ip0 = ip[ip_off];
+	        ip1 = ip[ip_off + 1];
+	        ip2 = ip[ip_off + 2];
+	        ip3 = ip[ip_off + 3];
+
+	        a1 = ip0 + ip3;
+	        b1 = ip1 + ip2;
+	        c1 = ip1 - ip2;
+	        d1 = ip0 - ip3;
+
+	        a2 = a1 + b1;
+	        b2 = c1 + d1;
+	        c2 = a1 - b1;
+	        d2 = d1 - c1;
+
+	        tmp_simd = SIMD.Int16x8(a2, b2, c2, d2);
+	        tmp_simd = SIMD.Int16x8.add(tmp_simd, temp_3_simd);
+	        tmp_simd = SIMD.Int16x8.shiftRightByScalar(tmp_simd, 3);
+
+	        var i4 = i*4;
+	        input[mb_dqcoeff_ptr + i4 * 16] = SIMD.Int16x8.extractLane(tmp_simd, 0);
+	        input[mb_dqcoeff_ptr + (i4 + 1) * 16] = SIMD.Int16x8.extractLane(tmp_simd, 1);
+	        input[mb_dqcoeff_ptr + (i4 + 2) * 16] = SIMD.Int16x8.extractLane(tmp_simd, 2);
+	        input[mb_dqcoeff_ptr + (i4 + 3) * 16] = SIMD.Int16x8.extractLane(tmp_simd, 3);
+
+	        ip_off += 4;
+	        op_off += 4;
+	    }
+
+	    //var mb_dqcoeff = input;
+
+	    //for (i = 0; i < 16; i++) {
+	        //coeffs[coeffs_off + i * 16] = y2[i]; //no y2_off need
+	      //  input[mb_dqcoeff_ptr + (i << 4)] = output[i];
+	    //}
+	    /*
+	    input[mb_dqcoeff_ptr + 0] = output[0];
+	    input[mb_dqcoeff_ptr + 16] = output[1];
+	    input[mb_dqcoeff_ptr + 32] = output[2];
+	    input[mb_dqcoeff_ptr + 48] = output[3];
+	    input[mb_dqcoeff_ptr + 64] = output[4];
+	    input[mb_dqcoeff_ptr + 80] = output[5];
+	    input[mb_dqcoeff_ptr + 96] = output[6];
+	    input[mb_dqcoeff_ptr + 112] = output[7];
+	    input[mb_dqcoeff_ptr + 128] = output[8];
+	    input[mb_dqcoeff_ptr + 144] = output[9];
+	    input[mb_dqcoeff_ptr + 160] = output[10];
+	    input[mb_dqcoeff_ptr + 176] = output[11];
+	    input[mb_dqcoeff_ptr + 192] = output[12];
+	    input[mb_dqcoeff_ptr + 208] = output[13];
+	    input[mb_dqcoeff_ptr + 224] = output[14];
+	    input[mb_dqcoeff_ptr + 240] = output[15];
+	*/
+	}
 	//
 	//vp8_short_inv_walsh4x4_c
-	function vp8_short_inv_walsh4x4_c(input, input_off, mb_dqcoeff_ptr) {
+	function vp8_short_inv_walsh4x4_js(input, input_off, mb_dqcoeff_ptr) {
 
 	    //var mb_dqcoeff_ptr = input_off;
 
