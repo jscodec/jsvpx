@@ -154,7 +154,7 @@ function read_kf_modes(pbi, mi, this_off, bool) {
             var L = left_block_mode(mi, this_off, i);
 
 
-            modes_cache[i] = read_bmode(bc, vp8_kf_bmode_prob[A][L]);
+            modes_cache[i] = read_bmode(bc, vp8_kf_bmode_prob[(A * 10) + L]);
 
         } while (++i < 16);
 
