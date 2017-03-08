@@ -13428,17 +13428,35 @@
 /***/ function(module, exports) {
 
 	'use strict';
+	var filter_block2d_first_pass;
+	var filter_block2d_first_pass_shape_1;
+	var filter_block2d_first_pass_shape_2
+
+
+
+
+	if(typeof SIMD !== 'undefined'){
+	    console.warn('simd');
+	    filter_block2d_first_pass = filter_block2d_first_pass_simd;
+	    filter_block2d_first_pass_shape_2 = filter_block2d_first_pass_simd;
+	    filter_block2d_first_pass_shape_1 = filter_block2d_first_pass_simd;
+	}else{
+	    console.warn('no simd');
+	    filter_block2d_first_pass = filter_block2d_first_pass_serial;
+	    filter_block2d_first_pass_shape_1 = filter_block2d_first_pass_shape_1_serial;
+	    filter_block2d_first_pass_shape_2 = filter_block2d_first_pass_shape_2_serial;
+	}
 	//bilinear_filters
 	var vp8_bilinear_filters =
 	        [
-	            new Int16Array([0, 0, 128, 0, 0, 0]),
-	            new Int16Array([0, 0, 112, 16, 0, 0]),
-	            new Int16Array([0, 0, 96, 32, 0, 0]),
-	            new Int16Array([0, 0, 80, 48, 0, 0]),
-	            new Int16Array([0, 0, 64, 64, 0, 0]),
-	            new Int16Array([0, 0, 48, 80, 0, 0]),
-	            new Int16Array([0, 0, 32, 96, 0, 0]),
-	            new Int16Array([0, 0, 16, 112, 0, 0])
+	            new Int16Array([0, 0, 128, 0, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 112, 16, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 96, 32, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 80, 48, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 64, 64, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 48, 80, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 32, 96, 0, 0 ,0 ,0]),
+	            new Int16Array([0, 0, 16, 112, 0, 0 ,0 ,0])
 	        ];
 	vp8_bilinear_filters[0].shape = 1;
 	vp8_bilinear_filters[1].shape = 1;
@@ -13452,14 +13470,14 @@
 	// sixtap_filters
 	var vp8_sub_pel_filters =
 	        [
-	            new Int16Array([0, 0, 128, 0, 0, 0]),
-	            new Int16Array([0, -6, 123, 12, -1, 0]),
-	            new Int16Array([2, -11, 108, 36, -8, 1]),
-	            new Int16Array([0, -9, 93, 50, -6, 0]),
-	            new Int16Array([3, -16, 77, 77, -16, 3]),
-	            new Int16Array([0, -6, 50, 93, -9, 0]),
-	            new Int16Array([1, -8, 36, 108, -11, 2]),
-	            new Int16Array([0, -1, 12, 123, -6, 0])
+	            new Int16Array([0, 0, 128, 0, 0, 0 ,0 ,0]),
+	            new Int16Array([0, -6, 123, 12, -1, 0 ,0 ,0]),
+	            new Int16Array([2, -11, 108, 36, -8, 1 ,0 ,0]),
+	            new Int16Array([0, -9, 93, 50, -6, 0 ,0 ,0]),
+	            new Int16Array([3, -16, 77, 77, -16, 3 ,0 ,0]),
+	            new Int16Array([0, -6, 50, 93, -9, 0 ,0 ,0]),
+	            new Int16Array([1, -8, 36, 108, -11, 2 ,0 ,0]),
+	            new Int16Array([0, -1, 12, 123, -6, 0 ,0 ,0])
 	        ];
 	vp8_sub_pel_filters[0].shape = 1;
 	vp8_sub_pel_filters[1].shape = 2;
@@ -13472,8 +13490,80 @@
 
 
 	var VP8_FILTER_SHIFT = 7;
+	function filter_block2d_first_pass_simd(output,
+	        output_off, output_width, src, src_ptr,
+	        reference_stride, cols, output_height, vp8_filter) {
 
-	function filter_block2d_first_pass(output,
+	    //console.warn('using simd');
+	    var r = 0, c = 0;
+	    var TempLane;
+	    var TempAdd;
+	    var Temp = 0;
+	    var input;
+
+	    //var filter0 = vp8_filter[0] | 0;
+	    //var filter1 = vp8_filter[1] | 0;
+	    //var filter2 = vp8_filter[2] | 0;
+	    //var filter3 = vp8_filter[3] | 0;
+	    //var filter4 = vp8_filter[4] | 0;
+	    //var filter5 = vp8_filter[5] | 0;
+	    //var TEMP;
+	    /*
+	    var filter = SIMD.Int16x8(
+	            vp8_filter[0],
+	            vp8_filter[1],
+	            vp8_filter[2],
+	            vp8_filter[3],
+	            vp8_filter[4],
+	            vp8_filter[5]
+	            );
+	*/
+	    var filter = SIMD.Int16x8.load(vp8_filter, 0);
+
+	    for (r = 0; r < output_height; r++) {
+	        for (c = 0; c < cols; c++) {
+
+	            input = SIMD.Int16x8(
+	                    src[src_ptr - 2],
+	                    src[src_ptr - 1],
+	                    src[src_ptr - 0],
+	                    src[src_ptr + 1],
+	                    src[src_ptr + 2],
+	                    src[src_ptr + 3]
+	                    );
+	                    
+	            //input = SIMD.Int16x8.load(src, src_ptr - 2);
+	            
+	            TempLane = SIMD.Int16x8.mul(input, filter);
+	            
+	            TempAdd = SIMD.Int16x8.swizzle(TempLane, 3, 4, 5, 6, 7, 0, 1, 2);
+	            TempLane =  SIMD.Int16x8.add(TempLane , TempAdd);
+
+	            Temp = SIMD.Int16x8.extractLane(TempLane, 0) +
+	                    SIMD.Int16x8.extractLane(TempLane, 1) +
+	                    SIMD.Int16x8.extractLane(TempLane, 2) + 64;
+	                    //SIMD.Int16x8.extractLane(TempLane, 3) +
+	                    //SIMD.Int16x8.extractLane(TempLane, 4) +
+	                    //SIMD.Int16x8.extractLane(TempLane, 5) + 64;
+
+	            Temp >>= VP8_FILTER_SHIFT;
+
+	            if (Temp < 0) {
+	                Temp = 0;
+	            } else if (Temp > 255) {
+	                Temp = 255;
+	            }
+
+	            output[output_off + c] = Temp;
+	            src_ptr++;
+	        }
+
+	        src_ptr += reference_stride - cols;
+	        output_off += output_width;
+	    }
+	}
+
+	function filter_block2d_first_pass_serial(output,
 	        output_off, output_width, src, src_ptr,
 	        reference_stride, cols, output_height, vp8_filter) {
 	            
@@ -13515,7 +13605,7 @@
 	    }
 	}
 
-	function filter_block2d_first_pass_shape_2(output,
+	function filter_block2d_first_pass_shape_2_serial(output,
 	        output_off, output_width, src, src_ptr,
 	        reference_stride, cols, output_height, vp8_filter) {
 	            
@@ -13557,7 +13647,7 @@
 	    }
 	}
 
-	function filter_block2d_first_pass_shape_1(output,
+	function filter_block2d_first_pass_shape_1_serial(output,
 	        output_off, output_width, src, src_ptr,
 	        reference_stride, cols, output_height, vp8_filter) {
 	            
@@ -13918,30 +14008,6 @@
 	        op_off += 4;
 	    }
 
-	    //var mb_dqcoeff = input;
-
-	    //for (i = 0; i < 16; i++) {
-	        //coeffs[coeffs_off + i * 16] = y2[i]; //no y2_off need
-	      //  input[mb_dqcoeff_ptr + (i << 4)] = output[i];
-	    //}
-	    /*
-	    input[mb_dqcoeff_ptr + 0] = output[0];
-	    input[mb_dqcoeff_ptr + 16] = output[1];
-	    input[mb_dqcoeff_ptr + 32] = output[2];
-	    input[mb_dqcoeff_ptr + 48] = output[3];
-	    input[mb_dqcoeff_ptr + 64] = output[4];
-	    input[mb_dqcoeff_ptr + 80] = output[5];
-	    input[mb_dqcoeff_ptr + 96] = output[6];
-	    input[mb_dqcoeff_ptr + 112] = output[7];
-	    input[mb_dqcoeff_ptr + 128] = output[8];
-	    input[mb_dqcoeff_ptr + 144] = output[9];
-	    input[mb_dqcoeff_ptr + 160] = output[10];
-	    input[mb_dqcoeff_ptr + 176] = output[11];
-	    input[mb_dqcoeff_ptr + 192] = output[12];
-	    input[mb_dqcoeff_ptr + 208] = output[13];
-	    input[mb_dqcoeff_ptr + 224] = output[14];
-	    input[mb_dqcoeff_ptr + 240] = output[15];
-	*/
 	}
 	//
 	//vp8_short_inv_walsh4x4_c
