@@ -12829,6 +12829,8 @@
 	            132, 132, 132, 132, 132, 132, 132, 132
 	        ]);
 
+	var dc_qlookup3 =
+	        new Int32Array([8,10,12,14,16,18,20,20,22,24,26,28,30,32,34,34,36,38,40,40,42,42,44,44,46,46,48,50,50,52,54,56,58,60,62,64,66,68,70,72,74,74,76,78,80,82,84,86,88,90,92,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126,128,130,132,134,136,138,140,142,144,146,148,150,152,152,154,156,158,160,162,164,166,168,170,172,174,176,178,182,186,190,192,196,200,202,204,208,212,216,220,224,228,232,236,244,248,252,256,260,264,268,272,276,280,286,290,296,302,308,314]);
 	//ac_q_lookup
 	var ac_qlookup =
 	        new Int32Array([
@@ -12878,7 +12880,7 @@
 	        return 8;
 	    }
 
-	    retval = dc_qlookup[QIndex] << 1;
+	    retval = dc_qlookup3[QIndex];
 	    return retval;
 	}
 
@@ -13849,9 +13851,79 @@
 	    var ip8 = 0;
 	    var ip4 = 0;
 
-	 
-	      
-	    for (i = 0; i < 4; i++)
+	    
+	    //Loop 1
+	    var i0 = ip[ip_off];
+	    var i1 = ip[ip_off + 1];
+	    var i2 = ip[ip_off + 2];
+	    var i3 = ip[ip_off + 3];
+	    var i4 = ip[ip_off + 4];
+	    var i5 = ip[ip_off + 5];
+	    var i6 = ip[ip_off + 6];
+	    var i7 = ip[ip_off + 7];
+	    var i8 = ip[ip_off + 8];
+	    var i9 = ip[ip_off + 9];
+	    var i10 = ip[ip_off + 10];
+	    var i11 = ip[ip_off + 11];
+	    var i12 = ip[ip_off + 12];
+	    var i13 = ip[ip_off + 13];
+	    var i14 = ip[ip_off + 14];
+	    var i15 = ip[ip_off + 15];
+
+
+	    a1 = (i0 + i12) | 0;
+	    b1 = (i4 + i8) | 0;
+	    c1 = (i4 - i8) | 0;
+	    d1 = (i0 - i12) | 0;
+
+	    op[op_off] = a1 + b1;
+	    op[op_off + 4] = c1 + d1;
+	    op[op_off + 8] = a1 - b1;
+	    op[op_off + 12] = d1 - c1;
+	    ip_off++;
+	    op_off++;
+
+	    //Loop 2
+	    a1 = (i1 + i13) | 0;
+	    b1 = (i5 + i9) | 0;
+	    c1 = (i5 - i9) | 0;
+	    d1 = (i1 - i13) | 0;
+
+	    op[op_off] = a1 + b1;
+	    op[op_off + 4] = c1 + d1;
+	    op[op_off + 8] = a1 - b1;
+	    op[op_off + 12] = d1 - c1;
+	    ip_off++;
+	    op_off++;
+
+	    //Loop 3
+	    a1 = (i2 + i14) | 0;
+	    b1 = (i6 + i10) | 0;
+	    c1 = (i6 - i10) | 0;
+	    d1 = (i2 - i14) | 0;
+
+	    op[op_off] = a1 + b1;
+	    op[op_off + 4] = c1 + d1;
+	    op[op_off + 8] = a1 - b1;
+	    op[op_off + 12] = d1 - c1;
+	    ip_off++;
+	    op_off++;
+
+
+	    //Loop 4
+	    a1 = (i3 + i15) | 0;
+	    b1 = (i7 + i11) | 0;
+	    c1 = (i7 - i11) | 0;
+	    d1 = (i3 - i15) | 0;
+
+	    op[op_off] = a1 + b1;
+	    op[op_off + 4] = c1 + d1;
+	    op[op_off + 8] = a1 - b1;
+	    op[op_off + 12] = d1 - c1;
+	    ip_off++;
+	    op_off++;
+	    /*  
+	    for (i = 1; i < 4; i++)
 	    {
 	        ip0 = ip[ip_off];
 	        ip4 = ip[ip_off + 4];
@@ -13871,7 +13943,7 @@
 	        ip_off++;
 	        op_off++;
 	    }
-
+	*/
 	    ip = output;
 	    ip_off = output_off;
 	    op = output;
@@ -13879,7 +13951,7 @@
 
 	    var data_32 = ip.data_32;
 	    var ip_32 = 0;
-
+	/*
 	    for (i = 0; i < 4; i++)
 	    {
 
@@ -13891,9 +13963,6 @@
 	        ip3 = ((ip_32 >> 16));
 	        ip2 = ((ip_32 << 16) >> 16);
 	        
-
-
-
 	        a1 = ip0 + ip3;
 	        b1 = ip1 + ip2;
 	        c1 = ip1 - ip2;
@@ -13904,22 +13973,140 @@
 	        c2 = a1 - b1;
 	        d2 = d1 - c1;
 
-
-
 	        output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
 	        output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
 
 
 	        ip_off += 4;
 	        op_off += 4;
-	    }
+	    }*/
+
+	    //Loop 1
+	    ip_32 = data_32[ip_off >> 1];
+	    ip1 = ((ip_32 >> 16));
+	    ip0 = ((ip_32 << 16) >> 16);
+
+	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip3 = ((ip_32 >> 16));
+	    ip2 = ((ip_32 << 16) >> 16);
+
+	    a1 = ip0 + ip3;
+	    b1 = ip1 + ip2;
+	    c1 = ip1 - ip2;
+	    d1 = ip0 - ip3;
+
+	    a2 = a1 + b1;
+	    b2 = c1 + d1;
+	    c2 = a1 - b1;
+	    d2 = d1 - c1;
+
+	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+
+
+	    ip_off += 4;
+	    op_off += 4;
+
+	    //Loop 2
+	    ip_32 = data_32[ip_off >> 1];
+	    ip1 = ((ip_32 >> 16));
+	    ip0 = ((ip_32 << 16) >> 16);
+
+	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip3 = ((ip_32 >> 16));
+	    ip2 = ((ip_32 << 16) >> 16);
+
+	    a1 = ip0 + ip3;
+	    b1 = ip1 + ip2;
+	    c1 = ip1 - ip2;
+	    d1 = ip0 - ip3;
+
+	    a2 = a1 + b1;
+	    b2 = c1 + d1;
+	    c2 = a1 - b1;
+	    d2 = d1 - c1;
+
+	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+
+
+	    ip_off += 4;
+	    op_off += 4;
+
+	    //Loop 3
+	    ip_32 = data_32[ip_off >> 1];
+	    ip1 = ((ip_32 >> 16));
+	    ip0 = ((ip_32 << 16) >> 16);
+
+	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip3 = ((ip_32 >> 16));
+	    ip2 = ((ip_32 << 16) >> 16);
+
+	    a1 = ip0 + ip3;
+	    b1 = ip1 + ip2;
+	    c1 = ip1 - ip2;
+	    d1 = ip0 - ip3;
+
+	    a2 = a1 + b1;
+	    b2 = c1 + d1;
+	    c2 = a1 - b1;
+	    d2 = d1 - c1;
+
+	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+
+
+	    ip_off += 4;
+	    op_off += 4;
+
+	    //loop 4
+	    ip_32 = data_32[ip_off >> 1];
+	    ip1 = ((ip_32 >> 16));
+	    ip0 = ((ip_32 << 16) >> 16);
+
+	    ip_32 = data_32[(ip_off + 2) >> 1];
+	    ip3 = ((ip_32 >> 16));
+	    ip2 = ((ip_32 << 16) >> 16);
+
+	    a1 = ip0 + ip3;
+	    b1 = ip1 + ip2;
+	    c1 = ip1 - ip2;
+	    d1 = ip0 - ip3;
+
+	    a2 = a1 + b1;
+	    b2 = c1 + d1;
+	    c2 = a1 - b1;
+	    d2 = d1 - c1;
+
+	    output_32[op_off >> 1] = ((a2 + 3) >> 3) & 0xFFFF | (((b2 + 3) >> 3) << 16);
+	    output_32[(op_off + 2) >> 1] = ((c2 + 3) >> 3) & 0xFFFF | (((d2 + 3) >> 3) << 16);
+
+
+	    ip_off += 4;
+	    op_off += 4;
 
 	    //var mb_dqcoeff = input;
 
-	    for (i = 0; i < 16; i++) {
+	    //for (i = 0; i < 16; i++) {
 	        //coeffs[coeffs_off + i * 16] = y2[i]; //no y2_off need
-	        input[mb_dqcoeff_ptr + (i << 4)] = output[i];
-	    }
+	      //  input[mb_dqcoeff_ptr + (i << 4)] = output[i];
+	    //}
+	    input[mb_dqcoeff_ptr + 0] = output[0];
+	    input[mb_dqcoeff_ptr + 16] = output[1];
+	    input[mb_dqcoeff_ptr + 32] = output[2];
+	    input[mb_dqcoeff_ptr + 48] = output[3];
+	    input[mb_dqcoeff_ptr + 64] = output[4];
+	    input[mb_dqcoeff_ptr + 80] = output[5];
+	    input[mb_dqcoeff_ptr + 96] = output[6];
+	    input[mb_dqcoeff_ptr + 112] = output[7];
+	    input[mb_dqcoeff_ptr + 128] = output[8];
+	    input[mb_dqcoeff_ptr + 144] = output[9];
+	    input[mb_dqcoeff_ptr + 160] = output[10];
+	    input[mb_dqcoeff_ptr + 176] = output[11];
+	    input[mb_dqcoeff_ptr + 192] = output[12];
+	    input[mb_dqcoeff_ptr + 208] = output[13];
+	    input[mb_dqcoeff_ptr + 224] = output[14];
+	    input[mb_dqcoeff_ptr + 240] = output[15];
 
 	}
 
