@@ -8,6 +8,7 @@ var vp8_entropymodedata = require("../common/vp8_entropymodedata");
 
 var vp8_kf_bmode_prob = vp8_entropymodedata.vp8_kf_bmode_prob;
 
+
 var vp8_coef_update_probs = require('../common/coefupdateprobs.js');
 
 var entropymode = require('../common/entropymode');
@@ -103,8 +104,8 @@ function read_kf_ymode(bc, p) {
 /*
  * static B_PREDICTION_MODE
  */
-function read_bmode(bc, p) {
-    var i = vp8_treed_read(bc, vp8_bmode_tree, p , 0);
+function read_bmode(bc, p , p_ptr) {
+    var i = vp8_treed_read(bc, vp8_bmode_tree, p , p_ptr);
 
     return i;
 }
@@ -153,8 +154,7 @@ function read_kf_modes(pbi, mi, this_off, bool) {
             var A = above_block_mode(mi, this_off, i, mis);
             var L = left_block_mode(mi, this_off, i);
 
-
-            modes_cache[i] = read_bmode(bc, vp8_kf_bmode_prob[(A * 10) + L]);
+            modes_cache[i] = read_bmode(bc, vp8_kf_bmode_prob, (A * 90) + L * 9);
 
         } while (++i < 16);
 

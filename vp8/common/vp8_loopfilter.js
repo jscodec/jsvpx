@@ -145,12 +145,14 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
                     interior_limit, hev_threshold);
         
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
-        var use_filter = mbi[mbi_off].mbmi.eob_mask
-                    || mbi[mbi_off].mbmi.y_mode === SPLITMV
-                    || mbi[mbi_off].mbmi.y_mode === B_PRED;
+        
 
         if (edge_limit)
         {
+            var use_filter = mbi[mbi_off].mbmi.eob_mask
+                    || mbi[mbi_off].mbmi.y_mode === SPLITMV
+                    || mbi[mbi_off].mbmi.y_mode === B_PRED;
+            
             if (col > 0)
                 vp8_loop_filter_mbv(y, y_off, u_off, v_off, stride, uv_stride, edge_limit, interior_limit, hev_threshold);
 

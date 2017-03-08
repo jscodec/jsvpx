@@ -5,8 +5,6 @@
 function abs(value ){
     return (value ^ (value >> 31)) - (value >> 31);
 }
-var min = Math.min;
-var max = Math.max;
 
 function saturate_int8(x) {
 
@@ -45,17 +43,13 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
     //f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
     if((a + 4) > 127){
         f1 = 15;
-    }else{
-        f1 = (a + 4) >> 3;
-    }
-    
-    
-    //f2 = ((a + 3 > 127) ? 127 : a + 3) >> 3;
-    if((a + 4) > 127){
         f2 = 15;
     }else{
+        f1 = (a + 4) >> 3;
         f2 = (a + 3) >> 3;
     }
+    
+
     
 
     p0 = saturate_uint8(p0 + f2);
