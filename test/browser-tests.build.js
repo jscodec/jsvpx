@@ -10909,6 +10909,23 @@
 	        else
 	            vp8_loop_filter_row_normal(ctx, row - 1, 0, ctx.mb_cols);
 	    }
+	   
+
+	    var render = gpu.createKernel(function (img_buffer) {        
+	        //return img_buffer[this.thread.x];
+	    }).dimensions([img.y.length]).outputToTexture(true);
+	    
+	    
+	    var chain = gpu.createKernel(function (A) {
+	        return A[this.thread.x];
+	    }).dimensions([img.y.length]);
+
+	    var temp_gpu = render(img.y);
+	    var temp_gpu_chained = chain(temp_gpu);
+	    //this_frame_mbmi = temp_gpu;//Uint8Array.from(render(temp_gpu));
+	    img.y = Uint8Array.from(temp_gpu_chained);
+	    img.y = new Uint32Array(img.y.buffer);
+	    //output = Uint8Array.from(render(output));
 
 
 	}
@@ -11532,6 +11549,7 @@
 
 	    decode_mb_rows(decoder);
 	    
+	    /*
 	    var out_img = ref_frames[CURRENT_FRAME].img.img_data;
 	    var render = gpu.createKernel(function (img_buffer) {
 	        
@@ -11545,7 +11563,7 @@
 	    ref_frames[CURRENT_FRAME].img.img_data.data_32 = new Uint32Array(ref_frames[CURRENT_FRAME].img.img_data.buffer);
 	    //output = Uint8Array.from(render(output));
 	    
-
+	*/
 	    decoder.frame_cnt++;
 
 	    //UPDATE REFERENCES TO FRAMES AND STUFF
