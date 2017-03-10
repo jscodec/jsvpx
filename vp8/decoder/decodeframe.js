@@ -337,23 +337,28 @@ function decode_mb_rows(ctx) {
             vp8_loop_filter_row_normal(ctx, row - 1, 0, ctx.mb_cols);
     }
    
+   
 
-    var render = gpu.createKernel(function (img_buffer) {        
-        //return img_buffer[this.thread.x];
+
+    var render = gpu.createKernel(function (img_buffer) {
+        
+        return img_buffer[this.thread.x];
+        
     }).dimensions([img.y.length]).outputToTexture(true);
     
-    
-    var chain = gpu.createKernel(function (A) {
-        return A[this.thread.x];
+    var chained = gpu.createKernel(function (img_buffer) {
+        
+        return img_buffer[this.thread.x];
+        
     }).dimensions([img.y.length]);
-
+    
     var temp_gpu = render(img.y);
-    var temp_gpu_chained = chain(temp_gpu);
-    //this_frame_mbmi = temp_gpu;//Uint8Array.from(render(temp_gpu));
-    img.y = Uint8Array.from(temp_gpu_chained);
-    img.y = new Uint32Array(img.y.buffer);
-    //output = Uint8Array.from(render(output));
+    var temp_gpu_chained = chained(temp_gpu);
 
+    
+    var new_frame = Uint8Array.from(temp_gpu_chained);
+    ctx.ref_frames[CURRENT_FRAME].img.img_data = new_frame;
+    ctx.ref_frames[CURRENT_FRAME].img.img_data.data_32 = new Uint32Array(new_frame.buffer);
 
 }
 
