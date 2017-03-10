@@ -1,8 +1,14 @@
 'use strict';
 var MotionVector = require('../common/mv.js');
 
+
 var filter = require('../common/filter.js');
 var filter_block2d = filter.filter_block2d;
+
+var filter_gpu = require('../common/filter_gpu.js');
+var using_gpu = false;
+var gpujs = require('../../libs/gpu.js');
+var gpu;
 
 var SPLITMV = 9;
 
@@ -13,6 +19,21 @@ var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 var c_utils = require('../../util/c_utils.js');
 var memset = c_utils.memset;
 var memcpy = c_utils.memcpy;
+
+if (typeof document !== 'undefined') {
+    var canvasEl = document.createElement('canvas'); //create the canvas object
+    if (!canvasEl.getContext) //if the method is not supported, i.e canvas is not supported
+    {
+        console.warn("No GPU support");
+
+    } else {
+
+        filter_block2d = filter_gpu.filter_block2d_gpu;
+        using_gpu = true;
+        gpu = new gpujs();
+
+    }
+}
 
 
 
@@ -305,6 +326,8 @@ function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
 
     }
     
+    //if (using_gpu)
+      //  output = Uint8Array.from(render(output));
     
 
 }
@@ -467,6 +490,8 @@ function vp8_build_inter_predictors_mb(ctx,
 
     else
         predict_inter(ctx, img, coeffs, coeffs_off, mbi);
+    
+  
 
 }
 

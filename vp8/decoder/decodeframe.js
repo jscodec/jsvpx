@@ -55,6 +55,11 @@ var copy_entropy_values = c_utils.copy_entropy_values;
 var memset = c_utils.memset;
 var memset_32 = c_utils.memset_32;
 
+var filter_gpu = require('../common/filter_gpu.js');
+var using_gpu = false;
+var gpujs = require('../../libs/gpu.js');
+var gpu;
+
 var FRAME_HEADER_SZ = 3;
 var KEYFRAME_HEADER_SZ = 7;
 
@@ -114,6 +119,21 @@ var MAX_MB_SEGMENTS = 4;
 var FRAME_HEADER_SZ = 3;
 var KEYFRAME_HEADER_SZ = 7;
 
+
+if (typeof document !== 'undefined') {
+    var canvasEl = document.createElement('canvas'); //create the canvas object
+    if (!canvasEl.getContext) //if the method is not supported, i.e canvas is not supported
+    {
+        console.warn("No GPU support");
+
+    } else {
+
+        
+        using_gpu = true;
+        gpu = new gpujs();
+
+    }
+}
 
 /*
  * was dequant_init
@@ -938,6 +958,18 @@ function vp8_decode_frame(data, decoder) {
         memset(above[col], 0, 0, 9);
 
     decode_mb_rows(decoder);
+    
+    
+    var render = gpu.createKernel(function (img_buffer) {
+        
+        return img_buffer[this.thread.x];
+        
+    }).dimensions([this_frame_mbmi.length]);
+    
+    var temp_gpu = render(this_frame_mbmi);
+    this_frame_mbmi = Uint8Array.from(render(temp_gpu));
+    //output = Uint8Array.from(render(output));
+    
 
     decoder.frame_cnt++;
 

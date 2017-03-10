@@ -10,6 +10,9 @@ var BrowserTests = {
     output: {
         path: path.join(__dirname, 'test'),
         filename: 'browser-tests.build.js'
+    },
+    node: {
+        fs: "empty"
     }
 };
 
@@ -73,7 +76,7 @@ if (process.env) {
     if (process.env.USE_BENCHMARK === "true") {
         module.exports = [JsVpxBenchmark];
     } else {
-        module.exports = [OGVVideoDecoder, JsVpx, BrowserTests];
+        module.exports = [/*OGVVideoDecoder, JsVpx, */BrowserTests];
     }
 
 }
