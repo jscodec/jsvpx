@@ -11532,15 +11532,17 @@
 
 	    decode_mb_rows(decoder);
 	    
-	    
+	    var out_img = ref_frames[CURRENT_FRAME].img.img_data;
 	    var render = gpu.createKernel(function (img_buffer) {
 	        
 	        return img_buffer[this.thread.x];
 	        
-	    }).dimensions([this_frame_mbmi.length]);
+	    }).dimensions([out_img.length]);
 	    
-	    var temp_gpu = render(this_frame_mbmi);
-	    this_frame_mbmi = Uint8Array.from(render(temp_gpu));
+	    var temp_gpu = render(ref_frames[CURRENT_FRAME].img.img_data);
+	    //this_frame_mbmi = temp_gpu;//Uint8Array.from(render(temp_gpu));
+	    ref_frames[CURRENT_FRAME].img.img_data = Uint8Array.from(temp_gpu);
+	    ref_frames[CURRENT_FRAME].img.img_data.data_32 = new Uint32Array(ref_frames[CURRENT_FRAME].img.img_data.buffer);
 	    //output = Uint8Array.from(render(output));
 	    
 
