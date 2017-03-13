@@ -12939,6 +12939,24 @@
 	    var HEAP32 = new stdlib.Int32Array(heap);
 
 
+	    function vp8_dc_quant(QIndex, Delta) {
+	        QIndex = QIndex | 0;
+	        Delta = Delta | 0;
+	        var retval = 0;
+
+	        QIndex = QIndex + Delta | 0;
+
+	        if ((QIndex | 0) > 127) {
+	            return 127 | 0;
+	        } else if ((QIndex | 0) < 0) {
+	            return 4 | 0;
+	        }
+
+
+
+	        return HEAP32[(QIndex << 2) >> 2] | 0;
+	    }
+
 	    // this is what we're validating
 	    function vp8_ac_uv_quant(QIndex, Delta) {
 	        QIndex = QIndex | 0;
@@ -12952,11 +12970,14 @@
 	        } else if ((QIndex | 0) < 0) {
 	            return 4 | 0;
 	        }
-
-	        return HEAP32[(QIndex << 2 )>> 2] |0;
+	        QIndex = QIndex + 127 | 0;
+	        return HEAP32[(QIndex << 2) >> 2] | 0;
 	    }
 
-	    return {vp8_ac_uv_quant: vp8_ac_uv_quant};
+	    return {
+	        vp8_ac_uv_quant: vp8_ac_uv_quant,
+	    vp8_dc_quant : vp8_dc_quant
+	    };
 	}
 
 	var stdlib;
@@ -12969,11 +12990,12 @@
 	}
 
 	var moduleBuffer = new Uint32Array(16384);
-	moduleBuffer.set(ac_qlookup);
+	moduleBuffer.set(dc_qlookup);
+	moduleBuffer.set(ac_qlookup, 127);
 	var quantModule = QuantModule(stdlib, {}, moduleBuffer.buffer);
 
 	module.exports = {};
-	module.exports.vp8_dc_quant = vp8_dc_quant;
+	module.exports.vp8_dc_quant = quantModule.vp8_dc_quant;
 	module.exports.vp8_dc2quant = vp8_dc2quant;
 	module.exports.vp8_dc_uv_quant = vp8_dc_uv_quant;
 	module.exports.vp8_ac_yquant = vp8_ac_yquant;
