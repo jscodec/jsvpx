@@ -21,7 +21,7 @@ var OGVVideoDecoder = {
         path: path.join(__dirname, 'builds'),
         filename: 'ogv-decoder-video-vp8.js'
     },
-
+/*
     plugins: [
         new ClosureCompilerPlugin({
             compiler: {
@@ -30,7 +30,7 @@ var OGVVideoDecoder = {
             concurrency: 3,
         })
     ]
-    
+    */
 };
 
 var JsVpx = {
@@ -73,7 +73,7 @@ if (process.env) {
     if (process.env.USE_BENCHMARK === "true") {
         module.exports = [JsVpxBenchmark];
     } else {
-        module.exports = [OGVVideoDecoder, JsVpx, BrowserTests];
+        module.exports = [OGVVideoDecoder,JsVpx, BrowserTests];
     }
 
 }
