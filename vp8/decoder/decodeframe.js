@@ -887,8 +887,10 @@ function vp8_decode_frame(data, decoder) {
     if(pc.frame_size_updated === 1 || partition_change === 1){
         //console.log("Partition changing : " + partitions);
         for (i = 0; i < partitions; i++) {
-            ctx.tokens[i].coeffs = new Uint32Array(coeff_row_sz);
-            ctx.tokens[i].coeffs.data_64 = new Float64Array(ctx.tokens[i].coeffs.buffer);
+            var shared = new SharedArrayBuffer(coeff_row_sz);
+            ctx.tokens[i].coeffs = new Uint32Array(shared);
+            ctx.tokens[i].coeffs.shared = shared;
+            ctx.tokens[i].coeffs.data_64 = new Float64Array(shared);
         }
     }
 

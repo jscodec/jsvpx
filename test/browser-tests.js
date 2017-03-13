@@ -5,6 +5,7 @@ var jsvpx = require('../build-templates/jsvpx.js');
 
 var testVectors = [
     'vp80-00-comprehensive-001.ivf',
+    /*
     'vp80-00-comprehensive-002.ivf',
     'vp80-00-comprehensive-003.ivf',
     'vp80-00-comprehensive-004.ivf',
@@ -65,6 +66,7 @@ var testVectors = [
     'vp80-05-sharpness-1439.ivf',
     'vp80-05-sharpness-1440.ivf',
     'vp80-05-sharpness-1443.ivf'
+    */
 ];
 
 function pad(num, size) {

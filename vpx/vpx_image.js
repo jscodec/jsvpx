@@ -227,8 +227,10 @@ function img_alloc_helper(img, fmt, d_w, d_h, stride_align, img_data) {
             size = (h * w * bps) >> 3;
         }
         //img.img_data = new Uint8ClampedArray(size);
-        img.img_data = new Uint8Array(size);
-        img.img_data.data_32 = new Uint32Array(img.img_data.buffer);
+        var buffer = new SharedArrayBuffer(size);
+        img.img_data = new Uint8Array(buffer);
+        img.img_data.shared = buffer;
+        img.img_data.data_32 = new Uint32Array(buffer);
         img.img_data_owner = 1;
     }
 

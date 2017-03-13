@@ -14,8 +14,11 @@ var c_utils = require('../../util/c_utils.js');
 var memset = c_utils.memset;
 var memcpy = c_utils.memcpy;
 
+var worker = new Worker('worker.js');
 
-
+worker.onmessage = function(e){
+    console.log('Message received from worker');
+}
 
 //Keep from having to redeclare this
 var chroma_mv = [
@@ -64,8 +67,16 @@ function predict_inter_emulated_edge(ctx,
 
     reference_offset = ctx.ref_frame_offsets[ref_frame];
     reference = ctx.ref_frame_offsets_[ref_frame];
-    
- 
+
+    worker.postMessage([
+        mb_col, mb_row, w, h, u, u_off,
+        v_off, ctx.frame_strg[0].img.img_data.shared,
+        emul_block_off,
+        ctx.ref_frame_offsets_[ref_frame].shared,
+        ctx.subpixel_filters, coeffs, coeffs_off,
+        mbi, reference_offset,
+        chroma_mv, img.uv_stride
+    ]);
 
     // Luma 
     for (b = 0; b < 16; b++) {
@@ -77,7 +88,8 @@ function predict_inter_emulated_edge(ctx,
         else
             ymv = mvs[b];
 
-        recon_1_edge_block(output, output_off, emul_block, emul_block_off, reference, reference_off, img.stride,
+        recon_1_edge_block(output, output_off, ctx.frame_strg[0].img.img_data,
+                emul_block_off, reference, reference_off, img.stride,
                 ymv, ctx.subpixel_filters,
                 coeffs, coeffs_off, mbi, x, y, w, h, b);
 
@@ -94,8 +106,40 @@ function predict_inter_emulated_edge(ctx,
         
     }
 
-    x = mb_col << 4;
-    y = mb_row << 4;
+    //console.warn(ctx.ref_frame_offsets_[ref_frame]);
+   /*
+    worker_filter(mb_col, mb_row, w, h, u, u_off,
+            v_off, ctx.frame_strg[0].img.img_data.shared,
+            emul_block_off,
+            ctx.ref_frame_offsets_[ref_frame].shared,
+            ctx.subpixel_filters, coeffs.shared, coeffs_off,
+            mbi, reference_offset, 
+            chroma_mv , img.uv_stride);
+        
+         */
+    
+
+}  
+
+function worker_filter(mb_col, mb_row, w, h, u, u_off,
+        v_off, emul_block, emul_block_off,
+        reference, subpixel_filters, coeffs, coeffs_off, mbi, reference_offset, chroma_mv_prv , uv_stride) {
+
+
+    var tmp = emul_block;
+    emul_block = new Uint8Array(tmp);
+    emul_block.data_32 = new Uint32Array(tmp);
+    
+    tmp = reference;
+    reference = new Uint8Array(tmp);
+    reference.data_32 = new Uint32Array(tmp);
+    
+
+    coeffs = new Uint32Array(coeffs);
+
+
+    var x = mb_col << 4;
+    var y = mb_row << 4;
 
     // Chroma 
     x >>= 1;
@@ -103,21 +147,19 @@ function predict_inter_emulated_edge(ctx,
     w >>= 1;
     h >>= 1;
 
-    //if (mbi.mbmi.y_mode !== SPLITMV)
-    //{
-    var uv_stride_4_8 = 4 * img.uv_stride - 8;
-    
-    for (b = 0; b < 4; b++) {
+    var uv_stride_4_8 = 4 * uv_stride - 8;
+
+    for (var b = 0; b < 4; b++) {
 
         recon_1_edge_block(u, u_off, emul_block, emul_block_off, reference, u_off + reference_offset, //u
-                img.uv_stride,
-                chroma_mv[b], ctx.subpixel_filters,
+                uv_stride,
+                chroma_mv_prv[b], subpixel_filters,
                 coeffs, coeffs_off, mbi, x, y, w, h, b + 16);
 
 
-        recon_1_edge_block(v, v_off, emul_block, emul_block_off, reference, v_off + reference_offset, //v
-                img.uv_stride,
-                chroma_mv[b], ctx.subpixel_filters,
+        recon_1_edge_block(u, v_off, emul_block, emul_block_off, reference, v_off + reference_offset, //v
+                uv_stride,
+                chroma_mv_prv[b], subpixel_filters,
                 coeffs, coeffs_off, mbi, x, y, w, h, b + 20);
 
 
@@ -133,11 +175,7 @@ function predict_inter_emulated_edge(ctx,
         }
 
     }
-    //}
-
 }
-
-
 
 function build_4x4uvmvs(mbi, full_pixel) {
     var mvs = mbi.bmi.mvs;

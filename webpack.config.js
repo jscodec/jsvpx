@@ -13,6 +13,16 @@ var BrowserTests = {
     }
 };
 
+var Worker = {
+    entry: [
+        path.join(__dirname, 'vp8/workers', 'worker.js')
+    ],
+    output: {
+        path: path.join(__dirname, 'test'),
+        filename: 'worker.js'
+    }
+};
+
 var OGVVideoDecoder = {
     entry: [
         path.join(__dirname, 'build-templates', 'OGVVideoDecoder.js')
@@ -73,7 +83,7 @@ if (process.env) {
     if (process.env.USE_BENCHMARK === "true") {
         module.exports = [JsVpxBenchmark];
     } else {
-        module.exports = [OGVVideoDecoder, JsVpx, BrowserTests];
+        module.exports = [/*OGVVideoDecoder, JsVpx,*/ BrowserTests, Worker];
     }
 
 }
