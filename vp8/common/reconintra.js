@@ -144,10 +144,13 @@ function predict_h_nxn(predict, predict_off, stride, n) {
     var j = 0;
 
     var istride = 0;
+    var predic_pixel = 0;
+    
     for (i = 0; i < n; i++) {
         istride = i * stride;
+        predic_pixel = left[left_off + i * stride];
         for (j = 0; j < n; j++)
-            predict[predict_off + istride + j] = left[left_off + i * stride];
+            predict[predict_off + istride + j] = predic_pixel;
     }
 }
 
