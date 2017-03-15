@@ -212,9 +212,9 @@ moduleBuffer.set(ac_qlookup, 127);
 var quantModule = QuantModule(stdlib, {}, moduleBuffer.buffer);
 
 module.exports = {};
-module.exports.vp8_dc_quant = quantModule.vp8_dc_quant;
+module.exports.vp8_dc_quant = vp8_dc_quant;
 module.exports.vp8_dc2quant = vp8_dc2quant;
 module.exports.vp8_dc_uv_quant = vp8_dc_uv_quant;
 module.exports.vp8_ac_yquant = vp8_ac_yquant;
 module.exports.vp8_ac2quant = vp8_ac2quant;
-module.exports.vp8_ac_uv_quant = quantModule.vp8_ac_uv_quant;
+module.exports.vp8_ac_uv_quant = vp8_ac_uv_quant;

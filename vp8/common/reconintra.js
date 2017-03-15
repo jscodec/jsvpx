@@ -144,6 +144,7 @@ function predict_h_nxn(predict, predict_off, stride, n) {
     var j = 0;
 
     var istride = 0;
+    
     for (i = 0; i < n; i++) {
         istride = i * stride;
         for (j = 0; j < n; j++)
