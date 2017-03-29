@@ -10,6 +10,9 @@ Now working on figuring out a few speed issues.
 
 Works best in Safari.
 
+Check out a running demo on ogv.js:
+http://jscodec.com/ogv-example/#file=Curiosity's_Seven_Minutes_of_Terror.ogv&size=360p.webm
+
 Based of code from John Koleszar's dixie libvpx branch : https://github.com/webmproject/libvpx/tree/dixie/vpx ,
 and Dominik Homberger's : https://github.com/dominikhlbg/vp8-webm-javascript-decoder.
 
