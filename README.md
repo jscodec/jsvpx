@@ -77,6 +77,17 @@ if(rawFrame){
 }
 ```
 
+##### jsvpx api demos:
+Running on Dominik's **vp8-webm-javascript-decoder:**
+
+Link to source using jsvpx:
+
+https://github.com/brianxautumn/vp8-webm-javascript-decoder/tree/JsVpx
+
+Link to live demo:
+
+http://jscodec.com/vp8-webm-javascript-decoder/vpxdec.html
+
 
 
 #### ogv.js
