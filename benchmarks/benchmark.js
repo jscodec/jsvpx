@@ -41,7 +41,7 @@ document.getElementById('run').onclick = function () {
 
 function loadVector(vectorNumber) {
 
-    if (vectorNumber === testVectors.length) {
+    if (vectorNumber === 1) {
         runExperiment();
         return;
     }

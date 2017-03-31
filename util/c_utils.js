@@ -7,17 +7,17 @@ function copy_entropy_values(header, otherHeader) {
     var probs = otherHeader.coeff_probs.data_32;
     var to = header.coeff_probs.data_32;
     //header.coeff_probs = otherHeader.coeff_probs.slice(0);
-    for (var i = 0; i < 264; i++)
-        to[i] = probs[i];
+    //for (var i = 0; i < 264; i++)
+    to.set(probs);
 
     //load mv probs
     probs = otherHeader.mv_probs;
     //header can probably be done faster
-    for (var i = 0; i < MV_PROB_CNT; i++)
-        header.mv_probs[0][i] = probs[0][i];
+    //for (var i = 0; i < MV_PROB_CNT; i++)
+    header.mv_probs[0].set(probs[0]);
 
-    for (var i = 0; i < MV_PROB_CNT; i++)
-        header.mv_probs[1][i] = probs[1][i];
+    //for (var i = 0; i < MV_PROB_CNT; i++)
+    header.mv_probs[1].set(probs[1]);
 
     //load y mode probs
     probs = otherHeader.y_mode_probs_32;
@@ -43,7 +43,7 @@ function memset(ptr, ptr_off, value, num) {
     var i = num;
     while (i--)
         ptr[ptr_off + i] = value;
-        
+
 }
 
 function memset_32(ptr, ptr_off, value, num) {
@@ -61,13 +61,13 @@ function memset_32(ptr, ptr_off, value, num) {
 }
 
 function memcpy(dst, dst_off, src, src_off, num) {
-    dst.set(src.subarray(src_off, src_off + num) , dst_off);
+    dst.set(src.subarray(src_off, src_off + num), dst_off);
     /*
-    var i = num;
-    while (i--) {
-        dst[dst_off + i] = src[src_off + i];
-    }
-    */
+     var i = num;
+     while (i--) {
+     dst[dst_off + i] = src[src_off + i];
+     }
+     */
     return dst;
 
 }

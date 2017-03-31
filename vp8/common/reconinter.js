@@ -241,7 +241,7 @@ function build_mc_border(dst, dst_off, src, src_off, stride, x, y, b_w, b_h, w, 
 }
 
 var uvmv = MotionVector.create();
-
+//Slowest thing :(
 function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
     var y, u , v;
     var y = u = v =  img.y;
@@ -264,11 +264,12 @@ function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
     var subpixel_filters = ctx.subpixel_filters;
 
     var mvs = mbi.bmi.mvs;
+    var mv = mbmi_cache.mv;
     for (b = 0; b < 16; b++) {
         var ymv;
 
         if (mode !== SPLITMV)
-            ymv = mbmi_cache.mv;
+            ymv = mv;
         else
             ymv = mvs[b];
 

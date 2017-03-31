@@ -169,15 +169,13 @@ class VP8D_COMP {
 
         mbi_w = this.mb_cols + 1; /* For left border col */
         mbi_h = this.mb_rows + 1; /* For above border row */
-        
+
         this.common.mode_info_stride = this.mb_cols + 1;
 
         if (this.common.frame_size_updated === 1) {
             this.mb_info_storage = null;
             this.mb_info_rows_storage = null;
-        }
 
-        if (this.mb_info_storage === null) {
             var length = mbi_w * mbi_h;
             this.mb_info_storage = new Array(length);
 
@@ -186,20 +184,22 @@ class VP8D_COMP {
                 this.mb_info_storage[i] = new mb_info();
 
             this.mb_info_storage_off = 0;
-            
-            this.mb_info_rows_storage_off = new Uint32Array(mbi_h);
+
+            this.mb_info_rows_off = new Uint32Array(mbi_h);
         }
+
+  
 
         var ptr = 1;
 
         for (i = 0; i < mbi_h; i++) {
-            this.mb_info_rows_storage_off[i] = ptr;
+            this.mb_info_rows_off[i] = ptr;
             ptr = (ptr + mbi_w) | 0;
         }
 
 
         this.mb_info_rows = this.mb_info_storage;
-        this.mb_info_rows_off = this.mb_info_rows_storage_off;
+        //this.mb_info_rows_off = this.mb_info_rows_storage_off;
     }
 
 

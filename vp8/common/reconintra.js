@@ -306,8 +306,6 @@ function  b_pred(predict, predict_off, stride, mbi, coeffs, coeffs_off) {
             case B_HU_PRED:
                 predict_hu_4x4(b_predict, b_predict_off, stride);
                 break;
-            default:
-                throw "ERROR :(";
         }
 
         vp8_short_idct4x4llm_c(b_predict, b_predict_off, b_predict, b_predict_off, stride, coeffs, coeffs_off);

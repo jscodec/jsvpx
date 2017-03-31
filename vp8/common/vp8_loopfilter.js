@@ -14,7 +14,6 @@ var high_edge_variance = loopfilter_filters.high_edge_variance;
 
 var CURRENT_FRAME = 0;
 
-var VPX_PLANE_PACKED = 0;   /**< To be used for all packed formats */
 var VPX_PLANE_Y = 0;   /**< Y (Luminance) plane */
 var VPX_PLANE_U = 1;   /**< U (Chroma) plane */
 var VPX_PLANE_V = 2;   /**< V (Chroma) plane */
@@ -26,12 +25,6 @@ var PLANE_V = VPX_PLANE_V;
 var B_PRED = 4; /* block mbmid prediction, each block has its own prediction mode */
 var ZEROMV = 7;
 var SPLITMV = 9;
-
-
-var abs = Math.abs;
-
-var min = Math.min;
-var max = Math.max;
 
 var edge_limit = new Int32Array([0]), interior_limit = new Int32Array([0]), hev_threshold = new Int32Array([0]);
 
@@ -62,7 +55,6 @@ function vp8_loop_filter_row_simple(ctx, row) {
 
         // TODO: only need to recalculate every MB if segmentation is
         //  enabled.
-
 
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
                 interior_limit, hev_threshold);
@@ -141,9 +133,10 @@ function vp8_loop_filter_row_normal(ctx, row, start_col, num_cols) {
         // TODO: only need to recalculate every MB if segmentation is
         //  enabled.
 
+
         calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-                    interior_limit, hev_threshold);
-        
+                interior_limit, hev_threshold);
+
         edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
         
 

@@ -69,8 +69,11 @@ function vp8_setup_intra_recon_top_line(ybf) {
 
     var uv_ptr = ybf.planes_off[1] - 1 - ybf.uv_stride;
     var uv_length = (ybf.d_w >> 1) + 5;
-    memset(data, ybf.planes_off[0] - 1 - ybf.stride, 127, ybf.d_w + 5);//ybf.y_width + 5
-    memset(data, uv_ptr, 127, uv_length);
+    
+    // TODO: This is being doubled somewhere else, find it!
+    //memset(data, ybf.planes_off[0] - 1 - ybf.stride, 127, ybf.d_w + 5);//ybf.y_width + 5
+    //memset(data, uv_ptr, 127, uv_length);
+    
 
 }
 

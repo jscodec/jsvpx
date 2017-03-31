@@ -45,12 +45,13 @@ vp8_sub_pel_filters[7].shape = 2;
 var VP8_FILTER_SHIFT = 7;
 
 function filter_block2d_first_pass(output,
-        output_off, output_width, src, src_ptr,
-        reference_stride, cols, output_height, vp8_filter) {
+         src, src_ptr,
+        reference_stride, vp8_filter) {
             
     var r = 0, c = 0;
     var Temp = 0;
-
+    var output_off = 0;
+    
     var filter0 = vp8_filter[0] | 0;
     var filter1 = vp8_filter[1] | 0;
     var filter2 = vp8_filter[2] | 0;
@@ -58,8 +59,8 @@ function filter_block2d_first_pass(output,
     var filter4 = vp8_filter[4] | 0;
     var filter5 = vp8_filter[5] | 0;
 
-    for (r = 0; r < output_height; r++) {
-        for (c = 0; c < cols; c++){
+    for (r = 0; r < 9; r++) {
+        for (c = 0; c < 4; c++){
             Temp = (src[src_ptr - 2] * filter0) +
                     (src[src_ptr - 1] * filter1) +
                     (src[src_ptr] * filter2) +
@@ -71,28 +72,24 @@ function filter_block2d_first_pass(output,
             
             Temp >>= VP8_FILTER_SHIFT;
             
-            if (Temp < 0) {
-                Temp = 0;
-            } else if (Temp > 255) {
-                Temp = 255;
-            }
+            Temp = Math.min(Math.max(Temp, 0), 255);
       
             output[output_off + c] = Temp;
             src_ptr++;
         }
 
-        src_ptr += reference_stride - cols;
-        output_off += output_width;
+        src_ptr += reference_stride - 4;
+        output_off += 16;
     }
 }
 
 function filter_block2d_first_pass_shape_2(output,
-        output_off, output_width, src, src_ptr,
-        reference_stride, cols, output_height, vp8_filter) {
+        src, src_ptr,
+        reference_stride, vp8_filter) {
             
     var r = 0, c = 0;
     var Temp = 0;
-
+    var output_off = 0;
 
     var filter1 = vp8_filter[1] | 0;
     var filter2 = vp8_filter[2] | 0;
@@ -100,8 +97,8 @@ function filter_block2d_first_pass_shape_2(output,
     var filter4 = vp8_filter[4] | 0;
 
 
-    for (r = 0; r < output_height; r++) {
-        for (c = 0; c < cols; c++){
+    for (r = 0; r < 9; r++) {
+        for (c = 0; c < 4; c++){
             Temp = 
                     (src[src_ptr - 1] * filter1) +
                     (src[src_ptr] * filter2) +
@@ -112,34 +109,40 @@ function filter_block2d_first_pass_shape_2(output,
             
             
             Temp >>= VP8_FILTER_SHIFT;
-            
+            /*
             if (Temp < 0) {
                 Temp = 0;
             } else if (Temp > 255) {
                 Temp = 255;
             }
+            */
+
+            Temp = Math.min(Math.max(Temp, 0), 255);
+
+
       
             output[output_off + c] = Temp;
             src_ptr++;
         }
 
-        src_ptr += reference_stride - cols;
-        output_off += output_width;
+        src_ptr += reference_stride - 4;
+        output_off += 16;
     }
 }
 
 function filter_block2d_first_pass_shape_1(output,
-        output_off, output_width, src, src_ptr,
-        reference_stride, cols, output_height, vp8_filter) {
+        src, src_ptr,
+        reference_stride, vp8_filter) {
             
     var r = 0, c = 0;
     var Temp = 0;
+    var output_off = 0;
 
     var filter2 = vp8_filter[2] | 0;
     var filter3 = vp8_filter[3] | 0;
 
-    for (r = 0; r < output_height; r++) {
-        for (c = 0; c < cols; c++){
+    for (r = 0; r < 9; r++) {
+        for (c = 0; c < 4; c++){
             Temp = 
                     (src[src_ptr] * filter2) +
                     (src[src_ptr + 1] * filter3) +
@@ -147,19 +150,21 @@ function filter_block2d_first_pass_shape_1(output,
             
             
             Temp >>= VP8_FILTER_SHIFT;
-            
+            /*
             if (Temp < 0) {
                 Temp = 0;
             } else if (Temp > 255) {
                 Temp = 255;
             }
-      
+      */
+            Temp = Math.min(Math.max(Temp, 0), 255);
+            
             output[output_off + c] = Temp;
             src_ptr++;
         }
 
-        src_ptr += reference_stride - cols;
-        output_off += output_width;
+        src_ptr += reference_stride - 4;
+        output_off += 16;
     }
 }
 
@@ -167,12 +172,12 @@ function filter_block2d_second_pass(output,
         output_off,
         output_stride,
         reference,
-        reference_off,
-        reference_stride,
         cols,
         rows,
         filter
         ) {
+    
+    var reference_off = 32;
     var r = 0, c = 0, Temp = 0;
     var filter0 = filter[0] | 0;
     var filter1 = filter[1] | 0;
@@ -180,32 +185,32 @@ function filter_block2d_second_pass(output,
     var filter3 = filter[3] | 0;
     var filter4 = filter[4] | 0;
     var filter5 = filter[5] | 0;
-    var twoRef = reference_stride << 1;
-    var threeRef = 3 * reference_stride;
 
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
-            Temp = (reference[reference_off - twoRef] * filter0) +
-                    (reference[reference_off - reference_stride] * filter1) +
+            Temp = (reference[reference_off - 32] * filter0) +
+                    (reference[reference_off - 16] * filter1) +
                     (reference[reference_off] * filter2) +
-                    (reference[reference_off + reference_stride] * filter3) +
-                    (reference[reference_off + twoRef] * filter4) +
-                    (reference[reference_off + threeRef] * filter5) +
+                    (reference[reference_off + 16] * filter3) +
+                    (reference[reference_off + 32] * filter4) +
+                    (reference[reference_off + 48] * filter5) +
                     64;
             Temp >>= 7;
-            
+            /*
             if (Temp < 0) {
                 Temp = 0;
             } else if (Temp > 255) {
                 Temp = 255;
             }
-      
+      */
+
+            Temp = Math.min(Math.max(Temp, 0), 255);
             output[output_off + c] = Temp;
             
             reference_off++;
         }
 
-        reference_off += reference_stride - cols;
+        reference_off += 16 - cols;
         output_off += output_stride;
     }
 
@@ -215,38 +220,40 @@ function filter_block2d_second_pass_shape_1(output,
         output_off,
         output_stride,
         reference,
-        reference_off,
-        reference_stride,
         cols,
         rows,
         filter
         ) {
+    
+    var reference_off = 32;
+    
     var r = 0, c = 0, Temp = 0;
     var filter2 = filter[2] | 0;
     var filter3 = filter[3] | 0;
-    var twoRef = reference_stride << 1;
-    var threeRef = 3 * reference_stride;
 
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
             Temp = 
                     (reference[reference_off] * filter2) +
-                    (reference[reference_off + reference_stride] * filter3) +
+                    (reference[reference_off + 16] * filter3) +
                     64;
             Temp >>= 7;
             
+            /*
             if (Temp < 0) {
                 Temp = 0;
             } else if (Temp > 255) {
                 Temp = 255;
             }
-      
+      */
+            Temp = Math.min(Math.max(Temp, 0), 255);
+            
             output[output_off + c] = Temp;
             
             reference_off++;
         }
 
-        reference_off += reference_stride - cols;
+        reference_off += 16 - cols;
         output_off += output_stride;
     }
 
@@ -256,44 +263,42 @@ function filter_block2d_second_pass_shape_2(output,
         output_off,
         output_stride,
         reference,
-        reference_off,
-        reference_stride,
         cols,
         rows,
         filter
         ) {
     var r = 0, c = 0, Temp = 0;
 
+    var reference_off = 32;
+    
     var filter1 = filter[1] | 0;
     var filter2 = filter[2] | 0;
     var filter3 = filter[3] | 0;
     var filter4 = filter[4] | 0;
 
-    var twoRef = reference_stride << 1;
-    var threeRef = 3 * reference_stride;
-
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
             Temp = 
-                    (reference[reference_off - reference_stride] * filter1) +
+                    (reference[reference_off - 16] * filter1) +
                     (reference[reference_off] * filter2) +
-                    (reference[reference_off + reference_stride] * filter3) +
-                    (reference[reference_off + twoRef] * filter4) +
+                    (reference[reference_off + 16] * filter3) +
+                    (reference[reference_off + 32] * filter4) +
                     64;
             Temp >>= 7;
-            
+            /*
             if (Temp < 0) {
                 Temp = 0;
             } else if (Temp > 255) {
                 Temp = 255;
             }
-      
+      */
+            Temp = Math.min(Math.max(Temp, 0), 255);
             output[output_off + c] = Temp;
             
             reference_off++;
         }
 
-        reference_off += reference_stride - cols;
+        reference_off += 16 - cols;
         output_off += output_stride;
     }
 }
@@ -309,28 +314,30 @@ function filter_block2d(output, output_off,
 
 
     if (filters[mx].shape === 1) {
-        filter_block2d_first_pass_shape_1(temp, 0, 16,
+        
+        filter_block2d_first_pass_shape_1(temp,
                 reference, reference_off - 2 * reference_stride, reference_stride,
-                cols, rows + 5, filters[mx]);
+                filters[mx]);
     } else if(filters[mx].shape === 2) {
-        filter_block2d_first_pass_shape_2(temp, 0, 16,
+        filter_block2d_first_pass_shape_2(temp,
                 reference, reference_off - 2 * reference_stride, reference_stride,
-                cols, rows + 5, filters[mx]);
+                filters[mx]);
     } else {
-        filter_block2d_first_pass(temp, 0, 16,
+        filter_block2d_first_pass(temp,
                 reference, reference_off - 2 * reference_stride, reference_stride,
-                cols, rows + 5, filters[mx]);
+                filters[mx]);
     }
     
     if (filters[my].shape === 1) {
+        
         filter_block2d_second_pass_shape_1(output, output_off, output_stride,
-                temp, 32, 16, cols, rows, filters[my]);
-    } else if (filters[my].shape === 1) {
+                temp, 4, 4, filters[my]);
+    } else if (filters[my].shape === 2) {
         filter_block2d_second_pass_shape_2(output, output_off, output_stride,
-                temp, 32, 16, cols, rows, filters[my]);
+                temp, 4, 4, filters[my]);
     } else {
         filter_block2d_second_pass(output, output_off, output_stride,
-                temp, 32, 16, cols, rows, filters[my]);
+                temp, 4, 4, filters[my]);
     }
 
     

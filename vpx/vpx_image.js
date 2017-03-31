@@ -229,6 +229,7 @@ function img_alloc_helper(img, fmt, d_w, d_h, stride_align, img_data) {
         //img.img_data = new Uint8ClampedArray(size);
         img.img_data = new Uint8Array(size);
         img.img_data.data_32 = new Uint32Array(img.img_data.buffer);
+        img.img_data.data_16 = new Uint16Array(img.img_data.buffer);
         img.img_data_owner = 1;
     }
 

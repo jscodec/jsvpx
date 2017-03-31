@@ -23,12 +23,14 @@ var OGVVideoDecoder = {
     },
 
     plugins: [
+        
         new ClosureCompilerPlugin({
             compiler: {
                 compilation_level: 'SIMPLE'
             },
             concurrency: 3,
         })
+        
     ]
     
 };

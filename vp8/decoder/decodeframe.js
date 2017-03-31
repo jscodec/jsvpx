@@ -195,7 +195,7 @@ function decode_mb_rows(ctx) {
 
     //vp8_setup_intra_recon(img.y, img.y_off, img.u_off, img.v_off, img.stride, img.uv_stride);
     //vp8_setup_intra_recon_top_line(yv12_fb_new);
-
+    var planes = yv12_fb_new.planes_off;
 
     for (var row = 0, partition = 0; row < mb_rows; row++) {
 
@@ -208,9 +208,9 @@ function decode_mb_rows(ctx) {
 
 
 
-        img.y_off = yv12_fb_new.planes_off[PLANE_Y];
-        img.u_off = yv12_fb_new.planes_off[PLANE_U];
-        img.v_off = yv12_fb_new.planes_off[PLANE_V];
+        img.y_off = planes[PLANE_Y];
+        img.u_off = planes[PLANE_U];
+        img.v_off = planes[PLANE_V];
 
 
 

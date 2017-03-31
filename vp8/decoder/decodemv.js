@@ -521,15 +521,15 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
         h = pbi.mb_rows << 4;
         
 
-        if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_INTRA]][0])) {
+        if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_INTRA] * 4])) {
 
 
-            if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAREST]][1])) {
-                if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAR]][2])) {
+            if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAREST]  * 4 + 1])) {
+                if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAR]  * 4 + 2])) {
 
 
 
-                    if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_SPLITMV]][3])) {
+                    if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_SPLITMV]  * 4 + 3])) {
                         //splitmv
 
                         this_.mbmi.y_mode = SPLITMV;
@@ -692,14 +692,14 @@ function read_mvcontexts(bc, mvc) {
 
 function mb_mode_mv_init(pbi) {
     var bc = pbi.boolDecoder;
-
+    var entropy_hdr = pbi.common.entropy_hdr;
 
     var bool = bc;
 
     var i = 0, j = 0, k = 0, l = 0;
     var x = 0;
 
-    var coeff_probs = pbi.common.entropy_hdr.coeff_probs;
+    var coeff_probs = entropy_hdr.coeff_probs;
     /* Read coefficient probability updates */
 
 
@@ -710,34 +710,35 @@ function mb_mode_mv_init(pbi) {
 
 
     /* Read coefficient skip mode probability */
-    pbi.common.entropy_hdr.coeff_skip_enabled = vpx_read_bit(bool);
+    entropy_hdr.coeff_skip_enabled = vpx_read_bit(bool);
 
-    if (pbi.common.entropy_hdr.coeff_skip_enabled === 1)
-        pbi.common.entropy_hdr.coeff_skip_prob = bool.get_uint(8);
+    if (entropy_hdr.coeff_skip_enabled === 1)
+        entropy_hdr.coeff_skip_prob = bool.get_uint(8);
     else
-        pbi.common.entropy_hdr.coeff_skip_prob = 0;
+        entropy_hdr.coeff_skip_prob = 0;
 
     /* Parse interframe probability updates */
     
     if (pbi.common.is_keyframe === false) {
-        pbi.common.entropy_hdr.prob_inter = bool.get_uint(8);
-        pbi.common.entropy_hdr.prob_last = bool.get_uint(8);
-        pbi.common.entropy_hdr.prob_gf = bool.get_uint(8);
+        
+        entropy_hdr.prob_inter = bool.get_uint(8);
+        entropy_hdr.prob_last = bool.get_uint(8);
+        entropy_hdr.prob_gf = bool.get_uint(8);
 
         if (vpx_read_bit(bool) === 1) {
-            pbi.common.entropy_hdr.y_mode_probs[0] = bool.get_uint(8);
-            pbi.common.entropy_hdr.y_mode_probs[1] = bool.get_uint(8);
-            pbi.common.entropy_hdr.y_mode_probs[2] = bool.get_uint(8);
-            pbi.common.entropy_hdr.y_mode_probs[3] = bool.get_uint(8);
+            entropy_hdr.y_mode_probs[0] = bool.get_uint(8);
+            entropy_hdr.y_mode_probs[1] = bool.get_uint(8);
+            entropy_hdr.y_mode_probs[2] = bool.get_uint(8);
+            entropy_hdr.y_mode_probs[3] = bool.get_uint(8);
         }
 
         if (vpx_read_bit(bool) === 1) {
-            pbi.common.entropy_hdr.uv_mode_probs[0] = bool.get_uint(8);
-            pbi.common.entropy_hdr.uv_mode_probs[1] = bool.get_uint(8);
-            pbi.common.entropy_hdr.uv_mode_probs[2] = bool.get_uint(8);
+            entropy_hdr.uv_mode_probs[0] = bool.get_uint(8);
+            entropy_hdr.uv_mode_probs[1] = bool.get_uint(8);
+            entropy_hdr.uv_mode_probs[2] = bool.get_uint(8);
         }
 
-        read_mvcontexts(bc, pbi.common.entropy_hdr.mv_probs);
+        read_mvcontexts(bc, entropy_hdr.mv_probs);
     }
 
 }

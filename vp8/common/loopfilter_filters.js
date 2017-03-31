@@ -38,9 +38,6 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
     a = saturate_int8(a);
 
 
-    
-
-    //f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
     if((a + 4) > 127){
         f1 = 15;
         f2 = 15;
@@ -50,16 +47,12 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
     }
     
 
-    
-
     p0 = saturate_uint8(p0 + f2);
     q0 = saturate_uint8(q0 - f1);
 
     if (!use_outer_taps)
     {
-        /* This handles the case of subblock_filter()
-         * (from the bitstream guide.
-         */
+
         a = (f1 + 1) >> 1;
         p1 = saturate_uint8(p1 + a);
         q1 = saturate_uint8(q1 - a);
@@ -69,8 +62,56 @@ function vp8_filter(pixels, pixels_off, stride, use_outer_taps) {
     pixels[pixels_off - stride] = p0;
     pixels[pixels_off] = q0;
     pixels[pixels_off + stride] = q1;
-
 }
+
+function vp8_filter_2(pixels, pixels_off, use_outer_taps) {
+    //console.warn(pixels_off);
+    var pixels_16 = pixels.data_16[(pixels_off - 2)/2];
+    var p1 = pixels_16 & 0xFF;
+    var p0 = (pixels_16 >> 8 )& 0xFF;
+    
+    pixels_16 = pixels.data_16[(pixels_off)/2];
+    var q0 = pixels_16 & 0xFF;
+    var q1 = (pixels_16 >> 8 )& 0xFF;
+
+    var a = 0;
+    var f1 = 0;
+    var f2 = 0;
+
+    a = 3 * (q0 - p0);
+
+    if (use_outer_taps)
+        a += saturate_int8(p1 - q1);
+
+    a = saturate_int8(a);
+
+
+    if((a + 4) > 127){
+        f1 = 15;
+        f2 = 15;
+    }else{
+        f1 = (a + 4) >> 3;
+        f2 = (a + 3) >> 3;
+    }
+    
+
+    p0 = saturate_uint8(p0 + f2);
+    q0 = saturate_uint8(q0 - f1);
+
+    if (!use_outer_taps)
+    {
+
+        a = (f1 + 1) >> 1;
+        p1 = saturate_uint8(p1 + a);
+        q1 = saturate_uint8(q1 - a);
+    }
+
+    pixels[pixels_off - 2] = p1;
+    pixels[pixels_off - 1] = p0;
+    pixels[pixels_off] = q0;
+    pixels[pixels_off + 1] = q1;
+}
+
 
 //vp8_loop_filter_simple_bh
 function vp8_loop_filter_bhs_c(y, y_ptr, y_stride, blimit) {
@@ -156,7 +197,7 @@ function filter_mb_v_edge(src,
     for (i = 0; i < length; i++) {
         if (normal_threshold(src, src_off, 1, edge_limit, interior_limit)) {
             if (high_edge_variance(src, src_off, 1, hev_threshold))
-                vp8_filter(src, src_off, 1, 1);
+                vp8_filter(src, src_off, 1 , 1);
             else
                 filter_mb_edge(src, src_off, 1);
         }
@@ -166,9 +207,7 @@ function filter_mb_v_edge(src,
 }
 
 
-function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-    var E = edge_limit;
-    var I = interior_limit;
+function normal_threshold(pixels, pixels_off, stride, E, I) {
 
     if (simple_threshold(pixels, pixels_off, stride, 2 * E + I) === 0)
         return 0;

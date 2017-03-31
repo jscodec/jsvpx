@@ -9686,15 +9686,13 @@
 
 	        mbi_w = this.mb_cols + 1; /* For left border col */
 	        mbi_h = this.mb_rows + 1; /* For above border row */
-	        
+
 	        this.common.mode_info_stride = this.mb_cols + 1;
 
 	        if (this.common.frame_size_updated === 1) {
 	            this.mb_info_storage = null;
 	            this.mb_info_rows_storage = null;
-	        }
 
-	        if (this.mb_info_storage === null) {
 	            var length = mbi_w * mbi_h;
 	            this.mb_info_storage = new Array(length);
 
@@ -9703,20 +9701,22 @@
 	                this.mb_info_storage[i] = new mb_info();
 
 	            this.mb_info_storage_off = 0;
-	            
-	            this.mb_info_rows_storage_off = new Uint32Array(mbi_h);
+
+	            this.mb_info_rows_off = new Uint32Array(mbi_h);
 	        }
+
+	  
 
 	        var ptr = 1;
 
 	        for (i = 0; i < mbi_h; i++) {
-	            this.mb_info_rows_storage_off[i] = ptr;
+	            this.mb_info_rows_off[i] = ptr;
 	            ptr = (ptr + mbi_w) | 0;
 	        }
 
 
 	        this.mb_info_rows = this.mb_info_storage;
-	        this.mb_info_rows_off = this.mb_info_rows_storage_off;
+	        //this.mb_info_rows_off = this.mb_info_rows_storage_off;
 	    }
 
 
@@ -10415,6 +10415,7 @@
 	        //img.img_data = new Uint8ClampedArray(size);
 	        img.img_data = new Uint8Array(size);
 	        img.img_data.data_32 = new Uint32Array(img.img_data.buffer);
+	        img.img_data.data_16 = new Uint16Array(img.img_data.buffer);
 	        img.img_data_owner = 1;
 	    }
 
@@ -10763,7 +10764,7 @@
 
 	    //vp8_setup_intra_recon(img.y, img.y_off, img.u_off, img.v_off, img.stride, img.uv_stride);
 	    //vp8_setup_intra_recon_top_line(yv12_fb_new);
-
+	    var planes = yv12_fb_new.planes_off;
 
 	    for (var row = 0, partition = 0; row < mb_rows; row++) {
 
@@ -10776,9 +10777,9 @@
 
 
 
-	        img.y_off = yv12_fb_new.planes_off[PLANE_Y];
-	        img.u_off = yv12_fb_new.planes_off[PLANE_U];
-	        img.v_off = yv12_fb_new.planes_off[PLANE_V];
+	        img.y_off = planes[PLANE_Y];
+	        img.u_off = planes[PLANE_U];
+	        img.v_off = planes[PLANE_V];
 
 
 
@@ -11549,7 +11550,6 @@
 
 	var CURRENT_FRAME = 0;
 
-	var VPX_PLANE_PACKED = 0;   /**< To be used for all packed formats */
 	var VPX_PLANE_Y = 0;   /**< Y (Luminance) plane */
 	var VPX_PLANE_U = 1;   /**< U (Chroma) plane */
 	var VPX_PLANE_V = 2;   /**< V (Chroma) plane */
@@ -11561,12 +11561,6 @@
 	var B_PRED = 4; /* block mbmid prediction, each block has its own prediction mode */
 	var ZEROMV = 7;
 	var SPLITMV = 9;
-
-
-	var abs = Math.abs;
-
-	var min = Math.min;
-	var max = Math.max;
 
 	var edge_limit = new Int32Array([0]), interior_limit = new Int32Array([0]), hev_threshold = new Int32Array([0]);
 
@@ -11597,7 +11591,6 @@
 
 	        // TODO: only need to recalculate every MB if segmentation is
 	        //  enabled.
-
 
 	        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
 	                interior_limit, hev_threshold);
@@ -11676,9 +11669,10 @@
 	        // TODO: only need to recalculate every MB if segmentation is
 	        //  enabled.
 
+
 	        calculate_filter_parameters(ctx, mbi[mbi_off], edge_limit,
-	                    interior_limit, hev_threshold);
-	        
+	                interior_limit, hev_threshold);
+
 	        edge_limit = edge_limit[0], interior_limit = interior_limit[0], hev_threshold = hev_threshold[0];
 	        
 
@@ -11910,9 +11904,6 @@
 	    a = saturate_int8(a);
 
 
-	    
-
-	    //f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
 	    if((a + 4) > 127){
 	        f1 = 15;
 	        f2 = 15;
@@ -11922,16 +11913,12 @@
 	    }
 	    
 
-	    
-
 	    p0 = saturate_uint8(p0 + f2);
 	    q0 = saturate_uint8(q0 - f1);
 
 	    if (!use_outer_taps)
 	    {
-	        /* This handles the case of subblock_filter()
-	         * (from the bitstream guide.
-	         */
+
 	        a = (f1 + 1) >> 1;
 	        p1 = saturate_uint8(p1 + a);
 	        q1 = saturate_uint8(q1 - a);
@@ -11941,8 +11928,56 @@
 	    pixels[pixels_off - stride] = p0;
 	    pixels[pixels_off] = q0;
 	    pixels[pixels_off + stride] = q1;
-
 	}
+
+	function vp8_filter_2(pixels, pixels_off, use_outer_taps) {
+	    //console.warn(pixels_off);
+	    var pixels_16 = pixels.data_16[(pixels_off - 2)/2];
+	    var p1 = pixels_16 & 0xFF;
+	    var p0 = (pixels_16 >> 8 )& 0xFF;
+	    
+	    pixels_16 = pixels.data_16[(pixels_off)/2];
+	    var q0 = pixels_16 & 0xFF;
+	    var q1 = (pixels_16 >> 8 )& 0xFF;
+
+	    var a = 0;
+	    var f1 = 0;
+	    var f2 = 0;
+
+	    a = 3 * (q0 - p0);
+
+	    if (use_outer_taps)
+	        a += saturate_int8(p1 - q1);
+
+	    a = saturate_int8(a);
+
+
+	    if((a + 4) > 127){
+	        f1 = 15;
+	        f2 = 15;
+	    }else{
+	        f1 = (a + 4) >> 3;
+	        f2 = (a + 3) >> 3;
+	    }
+	    
+
+	    p0 = saturate_uint8(p0 + f2);
+	    q0 = saturate_uint8(q0 - f1);
+
+	    if (!use_outer_taps)
+	    {
+
+	        a = (f1 + 1) >> 1;
+	        p1 = saturate_uint8(p1 + a);
+	        q1 = saturate_uint8(q1 - a);
+	    }
+
+	    pixels[pixels_off - 2] = p1;
+	    pixels[pixels_off - 1] = p0;
+	    pixels[pixels_off] = q0;
+	    pixels[pixels_off + 1] = q1;
+	}
+
 
 	//vp8_loop_filter_simple_bh
 	function vp8_loop_filter_bhs_c(y, y_ptr, y_stride, blimit) {
@@ -12028,7 +12063,7 @@
 	    for (i = 0; i < length; i++) {
 	        if (normal_threshold(src, src_off, 1, edge_limit, interior_limit)) {
 	            if (high_edge_variance(src, src_off, 1, hev_threshold))
-	                vp8_filter(src, src_off, 1, 1);
+	                vp8_filter(src, src_off, 1 , 1);
 	            else
 	                filter_mb_edge(src, src_off, 1);
 	        }
@@ -12038,9 +12073,7 @@
 	}
 
 
-	function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-	    var E = edge_limit;
-	    var I = interior_limit;
+	function normal_threshold(pixels, pixels_off, stride, E, I) {
 
 	    if (simple_threshold(pixels, pixels_off, stride, 2 * E + I) === 0)
 	        return 0;
@@ -12611,17 +12644,17 @@
 	    var probs = otherHeader.coeff_probs.data_32;
 	    var to = header.coeff_probs.data_32;
 	    //header.coeff_probs = otherHeader.coeff_probs.slice(0);
-	    for (var i = 0; i < 264; i++)
-	        to[i] = probs[i];
+	    //for (var i = 0; i < 264; i++)
+	    to.set(probs);
 
 	    //load mv probs
 	    probs = otherHeader.mv_probs;
 	    //header can probably be done faster
-	    for (var i = 0; i < MV_PROB_CNT; i++)
-	        header.mv_probs[0][i] = probs[0][i];
+	    //for (var i = 0; i < MV_PROB_CNT; i++)
+	    header.mv_probs[0].set(probs[0]);
 
-	    for (var i = 0; i < MV_PROB_CNT; i++)
-	        header.mv_probs[1][i] = probs[1][i];
+	    //for (var i = 0; i < MV_PROB_CNT; i++)
+	    header.mv_probs[1].set(probs[1]);
 
 	    //load y mode probs
 	    probs = otherHeader.y_mode_probs_32;
@@ -12647,7 +12680,7 @@
 	    var i = num;
 	    while (i--)
 	        ptr[ptr_off + i] = value;
-	        
+
 	}
 
 	function memset_32(ptr, ptr_off, value, num) {
@@ -12665,13 +12698,13 @@
 	}
 
 	function memcpy(dst, dst_off, src, src_off, num) {
-	    dst.set(src.subarray(src_off, src_off + num) , dst_off);
+	    dst.set(src.subarray(src_off, src_off + num), dst_off);
 	    /*
-	    var i = num;
-	    while (i--) {
-	        dst[dst_off + i] = src[src_off + i];
-	    }
-	    */
+	     var i = num;
+	     while (i--) {
+	     dst[dst_off + i] = src[src_off + i];
+	     }
+	     */
 	    return dst;
 
 	}
@@ -12741,7 +12774,7 @@
 	'use strict';
 	var default_coef_probs = __webpack_require__(82);
 	var default_coef_probs_32 = default_coef_probs.data_32;
-	var default_coef_probs_64 = default_coef_probs.data_64;
+
 
 	function vp8_default_coef_probs(pc) {
 
@@ -12753,7 +12786,7 @@
 	    for (var i = 0; i < 264; i++)
 	        to[i] = default_coef_probs_32[i];
 	     */
-	    pc.entropy_hdr.coeff_probs.data_64.set(default_coef_probs_64);
+	    pc.entropy_hdr.coeff_probs.data_32.set(default_coef_probs_32);
 	    /*
 	    var to = pc.entropy_hdr.coeff_probs.data_64;
 	    for (var i = 0; i < 132; i++)
@@ -13189,7 +13222,7 @@
 	}
 
 	var uvmv = MotionVector.create();
-
+	//Slowest thing :(
 	function predict_inter(ctx, img, coeffs, coeffs_off, mbi) {
 	    var y, u , v;
 	    var y = u = v =  img.y;
@@ -13212,11 +13245,12 @@
 	    var subpixel_filters = ctx.subpixel_filters;
 
 	    var mvs = mbi.bmi.mvs;
+	    var mv = mbmi_cache.mv;
 	    for (b = 0; b < 16; b++) {
 	        var ymv;
 
 	        if (mode !== SPLITMV)
-	            ymv = mbmi_cache.mv;
+	            ymv = mv;
 	        else
 	            ymv = mvs[b];
 
@@ -13474,12 +13508,13 @@
 	var VP8_FILTER_SHIFT = 7;
 
 	function filter_block2d_first_pass(output,
-	        output_off, output_width, src, src_ptr,
-	        reference_stride, cols, output_height, vp8_filter) {
+	         src, src_ptr,
+	        reference_stride, vp8_filter) {
 	            
 	    var r = 0, c = 0;
 	    var Temp = 0;
-
+	    var output_off = 0;
+	    
 	    var filter0 = vp8_filter[0] | 0;
 	    var filter1 = vp8_filter[1] | 0;
 	    var filter2 = vp8_filter[2] | 0;
@@ -13487,8 +13522,8 @@
 	    var filter4 = vp8_filter[4] | 0;
 	    var filter5 = vp8_filter[5] | 0;
 
-	    for (r = 0; r < output_height; r++) {
-	        for (c = 0; c < cols; c++){
+	    for (r = 0; r < 9; r++) {
+	        for (c = 0; c < 4; c++){
 	            Temp = (src[src_ptr - 2] * filter0) +
 	                    (src[src_ptr - 1] * filter1) +
 	                    (src[src_ptr] * filter2) +
@@ -13500,28 +13535,24 @@
 	            
 	            Temp >>= VP8_FILTER_SHIFT;
 	            
-	            if (Temp < 0) {
-	                Temp = 0;
-	            } else if (Temp > 255) {
-	                Temp = 255;
-	            }
+	            Temp = Math.min(Math.max(Temp, 0), 255);
 	      
 	            output[output_off + c] = Temp;
 	            src_ptr++;
 	        }
 
-	        src_ptr += reference_stride - cols;
-	        output_off += output_width;
+	        src_ptr += reference_stride - 4;
+	        output_off += 16;
 	    }
 	}
 
 	function filter_block2d_first_pass_shape_2(output,
-	        output_off, output_width, src, src_ptr,
-	        reference_stride, cols, output_height, vp8_filter) {
+	        src, src_ptr,
+	        reference_stride, vp8_filter) {
 	            
 	    var r = 0, c = 0;
 	    var Temp = 0;
-
+	    var output_off = 0;
 
 	    var filter1 = vp8_filter[1] | 0;
 	    var filter2 = vp8_filter[2] | 0;
@@ -13529,8 +13560,8 @@
 	    var filter4 = vp8_filter[4] | 0;
 
 
-	    for (r = 0; r < output_height; r++) {
-	        for (c = 0; c < cols; c++){
+	    for (r = 0; r < 9; r++) {
+	        for (c = 0; c < 4; c++){
 	            Temp = 
 	                    (src[src_ptr - 1] * filter1) +
 	                    (src[src_ptr] * filter2) +
@@ -13541,34 +13572,40 @@
 	            
 	            
 	            Temp >>= VP8_FILTER_SHIFT;
-	            
+	            /*
 	            if (Temp < 0) {
 	                Temp = 0;
 	            } else if (Temp > 255) {
 	                Temp = 255;
 	            }
+	            */
+
+	            Temp = Math.min(Math.max(Temp, 0), 255);
+
+
 	      
 	            output[output_off + c] = Temp;
 	            src_ptr++;
 	        }
 
-	        src_ptr += reference_stride - cols;
-	        output_off += output_width;
+	        src_ptr += reference_stride - 4;
+	        output_off += 16;
 	    }
 	}
 
 	function filter_block2d_first_pass_shape_1(output,
-	        output_off, output_width, src, src_ptr,
-	        reference_stride, cols, output_height, vp8_filter) {
+	        src, src_ptr,
+	        reference_stride, vp8_filter) {
 	            
 	    var r = 0, c = 0;
 	    var Temp = 0;
+	    var output_off = 0;
 
 	    var filter2 = vp8_filter[2] | 0;
 	    var filter3 = vp8_filter[3] | 0;
 
-	    for (r = 0; r < output_height; r++) {
-	        for (c = 0; c < cols; c++){
+	    for (r = 0; r < 9; r++) {
+	        for (c = 0; c < 4; c++){
 	            Temp = 
 	                    (src[src_ptr] * filter2) +
 	                    (src[src_ptr + 1] * filter3) +
@@ -13576,19 +13613,21 @@
 	            
 	            
 	            Temp >>= VP8_FILTER_SHIFT;
-	            
+	            /*
 	            if (Temp < 0) {
 	                Temp = 0;
 	            } else if (Temp > 255) {
 	                Temp = 255;
 	            }
-	      
+	      */
+	            Temp = Math.min(Math.max(Temp, 0), 255);
+	            
 	            output[output_off + c] = Temp;
 	            src_ptr++;
 	        }
 
-	        src_ptr += reference_stride - cols;
-	        output_off += output_width;
+	        src_ptr += reference_stride - 4;
+	        output_off += 16;
 	    }
 	}
 
@@ -13596,12 +13635,12 @@
 	        output_off,
 	        output_stride,
 	        reference,
-	        reference_off,
-	        reference_stride,
 	        cols,
 	        rows,
 	        filter
 	        ) {
+	    
+	    var reference_off = 32;
 	    var r = 0, c = 0, Temp = 0;
 	    var filter0 = filter[0] | 0;
 	    var filter1 = filter[1] | 0;
@@ -13609,32 +13648,32 @@
 	    var filter3 = filter[3] | 0;
 	    var filter4 = filter[4] | 0;
 	    var filter5 = filter[5] | 0;
-	    var twoRef = reference_stride << 1;
-	    var threeRef = 3 * reference_stride;
 
 	    for (r = 0; r < rows; r++) {
 	        for (c = 0; c < cols; c++) {
-	            Temp = (reference[reference_off - twoRef] * filter0) +
-	                    (reference[reference_off - reference_stride] * filter1) +
+	            Temp = (reference[reference_off - 32] * filter0) +
+	                    (reference[reference_off - 16] * filter1) +
 	                    (reference[reference_off] * filter2) +
-	                    (reference[reference_off + reference_stride] * filter3) +
-	                    (reference[reference_off + twoRef] * filter4) +
-	                    (reference[reference_off + threeRef] * filter5) +
+	                    (reference[reference_off + 16] * filter3) +
+	                    (reference[reference_off + 32] * filter4) +
+	                    (reference[reference_off + 48] * filter5) +
 	                    64;
 	            Temp >>= 7;
-	            
+	            /*
 	            if (Temp < 0) {
 	                Temp = 0;
 	            } else if (Temp > 255) {
 	                Temp = 255;
 	            }
-	      
+	      */
+
+	            Temp = Math.min(Math.max(Temp, 0), 255);
 	            output[output_off + c] = Temp;
 	            
 	            reference_off++;
 	        }
 
-	        reference_off += reference_stride - cols;
+	        reference_off += 16 - cols;
 	        output_off += output_stride;
 	    }
 
@@ -13644,38 +13683,40 @@
 	        output_off,
 	        output_stride,
 	        reference,
-	        reference_off,
-	        reference_stride,
 	        cols,
 	        rows,
 	        filter
 	        ) {
+	    
+	    var reference_off = 32;
+	    
 	    var r = 0, c = 0, Temp = 0;
 	    var filter2 = filter[2] | 0;
 	    var filter3 = filter[3] | 0;
-	    var twoRef = reference_stride << 1;
-	    var threeRef = 3 * reference_stride;
 
 	    for (r = 0; r < rows; r++) {
 	        for (c = 0; c < cols; c++) {
 	            Temp = 
 	                    (reference[reference_off] * filter2) +
-	                    (reference[reference_off + reference_stride] * filter3) +
+	                    (reference[reference_off + 16] * filter3) +
 	                    64;
 	            Temp >>= 7;
 	            
+	            /*
 	            if (Temp < 0) {
 	                Temp = 0;
 	            } else if (Temp > 255) {
 	                Temp = 255;
 	            }
-	      
+	      */
+	            Temp = Math.min(Math.max(Temp, 0), 255);
+	            
 	            output[output_off + c] = Temp;
 	            
 	            reference_off++;
 	        }
 
-	        reference_off += reference_stride - cols;
+	        reference_off += 16 - cols;
 	        output_off += output_stride;
 	    }
 
@@ -13685,44 +13726,42 @@
 	        output_off,
 	        output_stride,
 	        reference,
-	        reference_off,
-	        reference_stride,
 	        cols,
 	        rows,
 	        filter
 	        ) {
 	    var r = 0, c = 0, Temp = 0;
 
+	    var reference_off = 32;
+	    
 	    var filter1 = filter[1] | 0;
 	    var filter2 = filter[2] | 0;
 	    var filter3 = filter[3] | 0;
 	    var filter4 = filter[4] | 0;
 
-	    var twoRef = reference_stride << 1;
-	    var threeRef = 3 * reference_stride;
-
 	    for (r = 0; r < rows; r++) {
 	        for (c = 0; c < cols; c++) {
 	            Temp = 
-	                    (reference[reference_off - reference_stride] * filter1) +
+	                    (reference[reference_off - 16] * filter1) +
 	                    (reference[reference_off] * filter2) +
-	                    (reference[reference_off + reference_stride] * filter3) +
-	                    (reference[reference_off + twoRef] * filter4) +
+	                    (reference[reference_off + 16] * filter3) +
+	                    (reference[reference_off + 32] * filter4) +
 	                    64;
 	            Temp >>= 7;
-	            
+	            /*
 	            if (Temp < 0) {
 	                Temp = 0;
 	            } else if (Temp > 255) {
 	                Temp = 255;
 	            }
-	      
+	      */
+	            Temp = Math.min(Math.max(Temp, 0), 255);
 	            output[output_off + c] = Temp;
 	            
 	            reference_off++;
 	        }
 
-	        reference_off += reference_stride - cols;
+	        reference_off += 16 - cols;
 	        output_off += output_stride;
 	    }
 	}
@@ -13738,28 +13777,30 @@
 
 
 	    if (filters[mx].shape === 1) {
-	        filter_block2d_first_pass_shape_1(temp, 0, 16,
+	        
+	        filter_block2d_first_pass_shape_1(temp,
 	                reference, reference_off - 2 * reference_stride, reference_stride,
-	                cols, rows + 5, filters[mx]);
+	                filters[mx]);
 	    } else if(filters[mx].shape === 2) {
-	        filter_block2d_first_pass_shape_2(temp, 0, 16,
+	        filter_block2d_first_pass_shape_2(temp,
 	                reference, reference_off - 2 * reference_stride, reference_stride,
-	                cols, rows + 5, filters[mx]);
+	                filters[mx]);
 	    } else {
-	        filter_block2d_first_pass(temp, 0, 16,
+	        filter_block2d_first_pass(temp,
 	                reference, reference_off - 2 * reference_stride, reference_stride,
-	                cols, rows + 5, filters[mx]);
+	                filters[mx]);
 	    }
 	    
 	    if (filters[my].shape === 1) {
+	        
 	        filter_block2d_second_pass_shape_1(output, output_off, output_stride,
-	                temp, 32, 16, cols, rows, filters[my]);
-	    } else if (filters[my].shape === 1) {
+	                temp, 4, 4, filters[my]);
+	    } else if (filters[my].shape === 2) {
 	        filter_block2d_second_pass_shape_2(output, output_off, output_stride,
-	                temp, 32, 16, cols, rows, filters[my]);
+	                temp, 4, 4, filters[my]);
 	    } else {
 	        filter_block2d_second_pass(output, output_off, output_stride,
-	                temp, 32, 16, cols, rows, filters[my]);
+	                temp, 4, 4, filters[my]);
 	    }
 
 	    
@@ -14443,8 +14484,6 @@
 	            case B_HU_PRED:
 	                predict_hu_4x4(b_predict, b_predict_off, stride);
 	                break;
-	            default:
-	                throw "ERROR :(";
 	        }
 
 	        vp8_short_idct4x4llm_c(b_predict, b_predict_off, b_predict, b_predict_off, stride, coeffs, coeffs_off);
@@ -15368,15 +15407,15 @@
 	        h = pbi.mb_rows << 4;
 	        
 
-	        if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_INTRA]][0])) {
+	        if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_INTRA] * 4])) {
 
 
-	            if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAREST]][1])) {
-	                if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAR]][2])) {
+	            if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAREST]  * 4 + 1])) {
+	                if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_NEAR]  * 4 + 2])) {
 
 
 
-	                    if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_SPLITMV]][3])) {
+	                    if (vpx_read(bool, vp8_mode_contexts[cnt[CNT_SPLITMV]  * 4 + 3])) {
 	                        //splitmv
 
 	                        this_.mbmi.y_mode = SPLITMV;
@@ -15539,14 +15578,14 @@
 
 	function mb_mode_mv_init(pbi) {
 	    var bc = pbi.boolDecoder;
-
+	    var entropy_hdr = pbi.common.entropy_hdr;
 
 	    var bool = bc;
 
 	    var i = 0, j = 0, k = 0, l = 0;
 	    var x = 0;
 
-	    var coeff_probs = pbi.common.entropy_hdr.coeff_probs;
+	    var coeff_probs = entropy_hdr.coeff_probs;
 	    /* Read coefficient probability updates */
 
 
@@ -15557,34 +15596,35 @@
 
 
 	    /* Read coefficient skip mode probability */
-	    pbi.common.entropy_hdr.coeff_skip_enabled = vpx_read_bit(bool);
+	    entropy_hdr.coeff_skip_enabled = vpx_read_bit(bool);
 
-	    if (pbi.common.entropy_hdr.coeff_skip_enabled === 1)
-	        pbi.common.entropy_hdr.coeff_skip_prob = bool.get_uint(8);
+	    if (entropy_hdr.coeff_skip_enabled === 1)
+	        entropy_hdr.coeff_skip_prob = bool.get_uint(8);
 	    else
-	        pbi.common.entropy_hdr.coeff_skip_prob = 0;
+	        entropy_hdr.coeff_skip_prob = 0;
 
 	    /* Parse interframe probability updates */
 	    
 	    if (pbi.common.is_keyframe === false) {
-	        pbi.common.entropy_hdr.prob_inter = bool.get_uint(8);
-	        pbi.common.entropy_hdr.prob_last = bool.get_uint(8);
-	        pbi.common.entropy_hdr.prob_gf = bool.get_uint(8);
+	        
+	        entropy_hdr.prob_inter = bool.get_uint(8);
+	        entropy_hdr.prob_last = bool.get_uint(8);
+	        entropy_hdr.prob_gf = bool.get_uint(8);
 
 	        if (vpx_read_bit(bool) === 1) {
-	            pbi.common.entropy_hdr.y_mode_probs[0] = bool.get_uint(8);
-	            pbi.common.entropy_hdr.y_mode_probs[1] = bool.get_uint(8);
-	            pbi.common.entropy_hdr.y_mode_probs[2] = bool.get_uint(8);
-	            pbi.common.entropy_hdr.y_mode_probs[3] = bool.get_uint(8);
+	            entropy_hdr.y_mode_probs[0] = bool.get_uint(8);
+	            entropy_hdr.y_mode_probs[1] = bool.get_uint(8);
+	            entropy_hdr.y_mode_probs[2] = bool.get_uint(8);
+	            entropy_hdr.y_mode_probs[3] = bool.get_uint(8);
 	        }
 
 	        if (vpx_read_bit(bool) === 1) {
-	            pbi.common.entropy_hdr.uv_mode_probs[0] = bool.get_uint(8);
-	            pbi.common.entropy_hdr.uv_mode_probs[1] = bool.get_uint(8);
-	            pbi.common.entropy_hdr.uv_mode_probs[2] = bool.get_uint(8);
+	            entropy_hdr.uv_mode_probs[0] = bool.get_uint(8);
+	            entropy_hdr.uv_mode_probs[1] = bool.get_uint(8);
+	            entropy_hdr.uv_mode_probs[2] = bool.get_uint(8);
 	        }
 
-	        read_mvcontexts(bc, pbi.common.entropy_hdr.mv_probs);
+	        read_mvcontexts(bc, entropy_hdr.mv_probs);
 	    }
 
 	}
@@ -16153,18 +16193,25 @@
 /***/ function(module, exports) {
 
 	'use strict';
-
-	var vp8_mode_contexts =
-	        [
-	            new Uint8Array([7, 1, 1, 143]),
-	            new Uint8Array([14, 18, 14, 107]),
-	            new Uint8Array([135, 64, 57, 68]),
-	            new Uint8Array([60, 56, 128, 65]),
-	            new Uint8Array([159, 134, 128, 34]),
-	            new Uint8Array([234, 188, 128, 28])
-
-	        ];
-
+	/*
+	 var vp8_mode_contexts =
+	 [
+	 new Uint8Array([7, 1, 1, 143]),
+	 new Uint8Array([14, 18, 14, 107]),
+	 new Uint8Array([135, 64, 57, 68]),
+	 new Uint8Array([60, 56, 128, 65]),
+	 new Uint8Array([159, 134, 128, 34]),
+	 new Uint8Array([234, 188, 128, 28])
+	 
+	 ];
+	 */
+	var vp8_mode_contexts = new Uint8Array(
+	        [7, 1, 1, 143,
+	            14, 18, 14, 107,
+	            135, 64, 57, 68,
+	            60, 56, 128, 65,
+	            159, 134, 128, 34,
+	            234, 188, 128, 28]);
 	module.exports = vp8_mode_contexts;
 
 /***/ },
