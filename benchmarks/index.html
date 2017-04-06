@@ -9,7 +9,7 @@
         <!-- Bootstrap -->
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-        
+
         <link href="style.css" rel="stylesheet">
 
     </head>
@@ -20,10 +20,14 @@
                 <div class="jumbotron text-center">
                     <h1 id="title">jsvpx</h1>
                     <h3>benchmark tool</h3>
-                
+                    <div id="vector-select-wrap">
+                        <select id="vector-select"></select>
+                        
+                    </div>
+                    
                     <div class="btn-outline">
-                            <button class="btn btn-flare" id="run">Run Benchmark</button>
-                        </div>
+                        <button class="btn btn-flare" id="run">Run Benchmark</button>
+                    </div>
                 </div>
 
             </div>
@@ -37,12 +41,94 @@
 
                         <i id="gear" class="fa fa-cog" aria-hidden="true"></i>
 
-                        <div id="results" class="results" style="display:none">
-                            <div ><span class="result-title">Mean </span><span id="mean" class="result-value"></span></div>
-                            <div ><span class="result-title">Margin of Error </span><span id="error" class="result-value"></span></div>
-                            <div ><span class="result-title">Standard Error </span><span id="stderror" class="result-value"></span></div>
-                            <div ><span class="result-title">Variance </span><span id="variance" class="result-value"></span></div>
-                            <div ><span class="result-title">Deviation </span><span id="deviation" class="result-value"></span></div>
+                        <div id="results" class="results" >
+ 
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Jsvpx</th>
+                         
+                                    </tr>
+                                </thead>
+                                <tbody style="text-align:left;">
+                                    <tr>
+                                        <td>Mean</td>
+                                        <td id="mean1"></td>
+                   
+                                    </tr>
+                                    <tr>
+                                        <td>Margin of Error</td>
+                                        <td  id="error1"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>Standard Error</td>
+                                        <td  id="stderror1"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td  >Variance</td>
+                                        <td id="variance1"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>Deviation</td>
+                                        <td  id="deviation1"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>Ratio</td>
+                                        <td id="change"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            
+                             <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Emscripten</th>
+                         
+                                    </tr>
+                                </thead>
+                                <tbody style="text-align:left;">
+                                    <tr>
+                                        <td>Mean</td>
+                                        <td id="mean2"></td>
+                   
+                                    </tr>
+                                    <tr>
+                                        <td>Margin of Error</td>
+                                        <td  id="error2"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>Standard Error</td>
+                                        <td  id="stderror2"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td  >Variance</td>
+                                        <td id="variance2"></td>
+
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>Deviation</td>
+                                        <td  id="deviation2"></td>
+
+                                    </tr>
+
+                                </tbody>
+                            </table>
+
+                            <div id="chart_div"></div>
                         </div>
                         <!--
                             <p>
@@ -56,8 +142,9 @@
 
         <!-- jQuery -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-        <!-- Bootstrap -->
-        
+
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script src="../node_modules/ogv/dist/ogv-decoder-video-vp8.js"></script>
         <script src="benchmark.build.js"></script>
     </body>
 </html>

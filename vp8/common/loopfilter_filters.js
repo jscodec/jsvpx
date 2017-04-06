@@ -250,6 +250,7 @@ function normal_threshold(pixels, pixels_off, stride, E, I) {
 //vp8_mbfilter
 function filter_mb_edge(pixels, pixels_off, stride) {
 //var p3 = pixels[pixels_off -4*stride];
+
     var stride2 = stride << 1;
     var stride3 = 3 * stride;
 

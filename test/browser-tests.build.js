@@ -12116,6 +12116,7 @@
 	//vp8_mbfilter
 	function filter_mb_edge(pixels, pixels_off, stride) {
 	//var p3 = pixels[pixels_off -4*stride];
+
 	    var stride2 = stride << 1;
 	    var stride3 = 3 * stride;
 
@@ -13418,6 +13419,7 @@
 	function vp8_build_inter_predictors_mb(ctx,
 	        img, coeffs, coeffs_off, mbi, mb_col, mb_row) {
 
+	        
 	    var y, u, v;
 	    var y = u = v = img.y;
 	    var y_off = img.y_off;
@@ -14209,6 +14211,7 @@
 	    return Math.min(Math.max(x, 0), 255);
 	}
 
+
 	function predict_tm_16x16(predict, predict_off, stride){
 	    predict_tm_nxn(predict, predict_off, stride, 16);
 	}
@@ -14256,8 +14259,10 @@
 	        coeffs_off) {
 	    var i = 0;
 
+
 	    switch (mbi.mbmi.uv_mode)
 	    {
+	        
 	        case DC_PRED:
 	            
 	            //line84
@@ -15300,7 +15305,7 @@
 
 	        var x = 0, y = 0, w = 0, h = 0, b = 0;
 
-	        mi[this_off].mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
+	        mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
 	                ? 2 + vpx_read(bool, hdr.prob_gf)
 	                : 1;
 

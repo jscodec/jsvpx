@@ -63,6 +63,17 @@ class OGVDecoderVideoVP8 {
             var imgData = img.img_data;
 
             var videoFormat = this.videoFormat;
+            /*
+ *  * foundImage = 1;
+                    ogvjs_callback_frame(image->planes[0], image->stride[0],
+							 image->planes[1], image->stride[1],
+							 image->planes[2], image->stride[2],
+							 image->w, image->d_h,
+							 image->w >> 1, image->d_h >> 1); // @todo pixel format
+	}
+	return foundImage;
+ */
+ 
             this.frameBuffer = {
                 // @fixme what to do about the crop coordinates if resolution changes? can this happen in webm land? what about if ogv gets a new steam?
                 format: {
@@ -105,9 +116,9 @@ class OGVDecoderVideoVP8 {
 
 
 
-if(typeof window !== 'undefined'){
+if (typeof window !== 'undefined') {
     window.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
-}else if(typeof self !== 'undefined'){
+} else if (typeof self !== 'undefined') {
     self.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
 }
 

@@ -414,7 +414,7 @@ function read_mb_modes_mv(pbi, mi, this_off, bool, bounds) {
 
         var x = 0, y = 0, w = 0, h = 0, b = 0;
 
-        mi[this_off].mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
+        mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
                 ? 2 + vpx_read(bool, hdr.prob_gf)
                 : 1;
 

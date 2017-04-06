@@ -51,18 +51,40 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(2);
-	var process = __webpack_require__(4);
-	var Benchmark = __webpack_require__(5);
+	google.charts.load('current', {packages: ['corechart', 'bar']});
+	var testVectors = __webpack_require__(2);
+
+	var select = $('#vector-select');
+	for(var val in testVectors) {
+	    $('<option />', {value: val, text: testVectors[val]}).appendTo(select);
+	}
 
 
-	var Benchmark = __webpack_require__(5);
+	var _ = __webpack_require__(3);
+	var process = __webpack_require__(5);
+	var Benchmark = __webpack_require__(6);
+
+	var blankFormat = {
+	    videoFormat: {
+	        cropLeft: null,
+	        cropTop: null,
+	        cropWidth: null,
+	        cropHeight: null,
+	        displayWidth: null,
+	        displayHeight: null
+	    }
+	};
+
+	var Benchmark = __webpack_require__(6);
 	Benchmark = Benchmark.runInContext({_: _, process: process});
 	window.Benchmark = Benchmark;
 
-	var ivf = __webpack_require__(6);
-	var jsvpx = __webpack_require__(7);
-	var testVectors = __webpack_require__(40);
+	var emscriptenDecoder = new OGVDecoderVideoVP8(blankFormat);
+	emscriptenDecoder.init(function () {});
+
+	var ivf = __webpack_require__(7);
+	var jsvpx = __webpack_require__(8);
+
 	var benchmarkOptions = {
 	    maxTime: 1000000,
 	    async: true
@@ -72,9 +94,11 @@
 	var suite = new Benchmark.Suite(benchmarkOptions);
 	var vectorFolder = '../vp8-test-vectors/';
 	var compressedFrames = [];
-	var comprehensiveTestFrames = [];
+	window.comprehensiveTestFrames = [];
 
-	var decoder = new jsvpx();
+
+
+	var decoder = new jsvpx(blankFormat);
 
 
 	document.getElementById('run').onclick = function () {
@@ -85,19 +109,15 @@
 	        //loadVector(0);
 	        $("#results").hide("slow", function () {
 	            comprehensiveTestFrames = []; //todo: make this not suck and preload vectors
-	            loadVector(0);
+	            loadVector(select.val());
 	        });
 	    });
-
 
 	};
 
 	function loadVector(vectorNumber) {
 
-	    if (vectorNumber === 1) {
-	        runExperiment();
-	        return;
-	    }
+
 
 	    var file = testVectors[vectorNumber];
 	    var vectorLoader = new XMLHttpRequest();
@@ -115,46 +135,153 @@
 	            comprehensiveTestFrames.push(demuxer.processFrame());
 	        }
 
-	        loadVector(vectorNumber + 1);
+	        suite.run();
 	    };
 
 	    vectorLoader.send(null);
 	}
 
-	function runExperiment() {
+	suite.add("JsVpx", function () {
 
-	    suite.add("Working Copy", function () {
+	    for (var i = 0; i < comprehensiveTestFrames.length; i++) {
 
-	        for (var i = 0; i < comprehensiveTestFrames.length; i++) {
-	            decoder.decode(comprehensiveTestFrames[i]);
+	        decoder.processFrame(comprehensiveTestFrames[i], function () {});
 
-	        }
+	    }
 
-	    });
+	});
 
-	    suite.on('complete', function () {
-	        var benchTest1 = this[0];
-	        $("#gear").hide("slow", function () {
-	            document.getElementById('mean').innerHTML = benchTest1.stats.mean.toFixed(3) + "ms";
-	            document.getElementById('error').innerHTML = "&plusmn;" + benchTest1.stats.moe.toFixed(2) + "%";
-	            document.getElementById('stderror').innerHTML = benchTest1.stats.sem.toFixed(3) + "ms";
-	            document.getElementById('variance').innerHTML = benchTest1.stats.variance.toFixed(3) + "ms";
-	            document.getElementById('deviation').innerHTML = benchTest1.stats.deviation.toFixed(3) + "ms";
-	            $("#results").show("slow", function () {
+	suite.add("Emscripten", function () {
 
-	            });
+	    for (var i = 0; i < comprehensiveTestFrames.length; i++) {
+	        emscriptenDecoder.processFrame(comprehensiveTestFrames[i], function () {});
+	    }
+
+	});
+
+	suite.on('complete', function () {
+	    var benchTest1 = this[0];
+	    var benchTest2 = this[1];
+	    $("#gear").hide("slow", function () {
+	        document.getElementById('mean1').innerHTML = benchTest1.stats.mean.toFixed(3) + "ms";
+	        document.getElementById('error1').innerHTML = "&plusmn;" + benchTest1.stats.moe.toFixed(2) + "%";
+	        document.getElementById('stderror1').innerHTML = benchTest1.stats.sem.toFixed(3) + "ms";
+	        document.getElementById('variance1').innerHTML = benchTest1.stats.variance.toFixed(3) + "ms";
+	        document.getElementById('deviation1').innerHTML = benchTest1.stats.deviation.toFixed(3) + "ms";
+	        document.getElementById('change').innerHTML = (benchTest1.stats.mean / benchTest2.stats.mean ).toFixed(3);
+
+	        document.getElementById('mean2').innerHTML = benchTest2.stats.mean.toFixed(3) + "ms";
+	        document.getElementById('error2').innerHTML = "&plusmn;" + benchTest2.stats.moe.toFixed(2) + "%";
+	        document.getElementById('stderror2').innerHTML = benchTest2.stats.sem.toFixed(3) + "ms";
+	        document.getElementById('variance2').innerHTML = benchTest2.stats.variance.toFixed(3) + "ms";
+	        document.getElementById('deviation2').innerHTML = benchTest2.stats.deviation.toFixed(3) + "ms";
+	        $("#results").show("slow", function () {
+
 	        });
+	    });
+	    console.warn(decoder.frameBuffer);
+	    console.warn(emscriptenDecoder.frameBuffer);
+	    console.warn(this);
+	    if (benchTest1.aborted)
+	        console.warn(benchTest1.error.stack);
 
-	        console.warn(this);
-	        if (benchTest1.aborted)
-	            console.warn(benchTest1.error.stack);
+	    updateChart(this[0], this[1]);
 
-	    }).run();
+	});
+
+	function updateChart(bench1, bench2) {
+	    var options = {
+	        title: "JsVpx vs Emscripten",
+	        //width: 600,
+	        height: 400,
+	        bar: {groupWidth: "95%"},
+	        legend: {position: "none"},
+	        vAxis:{
+	            minValue : 0
+	        }
+	    };
+
+	    var data = google.visualization.arrayToDataTable([
+	        ['Decoder', 'Avg Time', {role: 'style'}],
+	        ['JsVpx', bench1.stats.mean, 'red'],
+	        ['Emscripten', bench2.stats.mean, 'silver']
+
+	    ]);
+	    var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+	    chart.draw(data, options);
 	}
-
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	module.exports = [
+	    'vp80-00-comprehensive-001.ivf',
+	    'vp80-00-comprehensive-002.ivf',
+	    'vp80-00-comprehensive-003.ivf',
+	    'vp80-00-comprehensive-004.ivf',
+	    'vp80-00-comprehensive-005.ivf',
+	    'vp80-00-comprehensive-006.ivf',
+	    'vp80-00-comprehensive-007.ivf',
+	    'vp80-00-comprehensive-008.ivf',
+	    'vp80-00-comprehensive-009.ivf',
+	    'vp80-00-comprehensive-010.ivf',
+	    'vp80-00-comprehensive-011.ivf',
+	    'vp80-00-comprehensive-012.ivf',
+	    'vp80-00-comprehensive-013.ivf',
+	    'vp80-00-comprehensive-014.ivf',
+	    'vp80-00-comprehensive-015.ivf',
+	    'vp80-00-comprehensive-016.ivf',
+	    'vp80-00-comprehensive-017.ivf',
+	    'vp80-00-comprehensive-018.ivf',
+	    'vp80-01-intra-1400.ivf',
+	    'vp80-01-intra-1411.ivf',
+	    'vp80-01-intra-1416.ivf',
+	    'vp80-01-intra-1417.ivf',
+	    'vp80-02-inter-1402.ivf',
+	    'vp80-02-inter-1412.ivf',
+	    'vp80-02-inter-1418.ivf',
+	    'vp80-02-inter-1424.ivf',
+	    'vp80-03-segmentation-01.ivf',
+	    'vp80-03-segmentation-02.ivf',
+	    'vp80-03-segmentation-03.ivf',
+	    'vp80-03-segmentation-04.ivf',
+	    'vp80-03-segmentation-1401.ivf',
+	    'vp80-03-segmentation-1403.ivf',
+	    'vp80-03-segmentation-1407.ivf',
+	    'vp80-03-segmentation-1408.ivf',
+	    'vp80-03-segmentation-1409.ivf',
+	    'vp80-03-segmentation-1410.ivf',
+	    'vp80-03-segmentation-1413.ivf',
+	    'vp80-03-segmentation-1414.ivf',
+	    'vp80-03-segmentation-1415.ivf',
+	    'vp80-03-segmentation-1425.ivf',
+	    'vp80-03-segmentation-1426.ivf',
+	    'vp80-03-segmentation-1427.ivf',
+	    'vp80-03-segmentation-1432.ivf',
+	    'vp80-03-segmentation-1435.ivf',
+	    'vp80-03-segmentation-1436.ivf',
+	    'vp80-03-segmentation-1437.ivf',
+	    'vp80-03-segmentation-1441.ivf',
+	    'vp80-03-segmentation-1442.ivf',
+	    'vp80-04-partitions-1404.ivf',
+	    'vp80-04-partitions-1405.ivf',
+	    'vp80-04-partitions-1406.ivf',
+	    'vp80-05-sharpness-1428.ivf',
+	    'vp80-05-sharpness-1429.ivf',
+	    'vp80-05-sharpness-1430.ivf',
+	    'vp80-05-sharpness-1431.ivf',
+	    'vp80-05-sharpness-1433.ivf',
+	    'vp80-05-sharpness-1434.ivf',
+	    'vp80-05-sharpness-1438.ivf',
+	    'vp80-05-sharpness-1439.ivf',
+	    'vp80-05-sharpness-1440.ivf',
+	    'vp80-05-sharpness-1443.ivf'
+	];
+
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -17242,10 +17369,10 @@
 	  }
 	}.call(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(4)(module)))
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -17261,7 +17388,7 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -17447,7 +17574,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	/*!
@@ -20277,7 +20404,7 @@
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -20353,22 +20480,30 @@
 	module.exports = JsIvf;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var jsvpx = __webpack_require__(8);
+	var jsvpx = __webpack_require__(9);
 
-	var vpx_codec = __webpack_require__(39);
+	var vpx_codec = __webpack_require__(40);
 	var vpx_codec_ctx_t = vpx_codec.vpx_codec_ctx_t;
 
 
-	/**
-	 * Javascript style interface
-	 */
+	var getTimestamp;
+	if (typeof performance === 'undefined' || typeof performance.now === 'undefined') {
+	    getTimestamp = Date.now;
+	} else {
+	    getTimestamp = performance.now.bind(performance);
+	}
 
-	class JsVpx {
+	class OGVDecoderVideoVP8 {
 
-	    constructor() {
+	    constructor(options) {
+	        this.cpuTime = 0;
+	        this.loadedMetadata = true;
+	        this.frameBuffer = null;
+	        this.videoFormat = options.videoFormat || null;
+
 
 	        this.iface = jsvpx.ifaces[0].iface; // get jsvp8 decoder
 	        var cfg = null;
@@ -20377,10 +20512,27 @@
 
 	        jsvpx.vpx_codec_dec_init(this.decoder, this.iface, cfg, flags);//ctx, iface, cfg, flags
 
+
 	    }
 
-	    decode(buf) {
+	    init(callback) {
+	        console.warn("STARTING CODEC JSVPX");
+	        callback();
+	    }
+
+	    processHeader(data, callback) {
+	        //console.error("PROCESS HEADER");
+	        this.loadedMetadata = true;
+	        callback(0);
+	    }
+
+	    processFrame(buf, callback) {
+
+	        var start = getTimestamp();
+
 	        var data = new Uint8Array(buf);
+
+
 	        var iter = null; //vpx_codec_iter_t
 
 	        var user_priv;
@@ -20391,20 +20543,74 @@
 	        var img = jsvpx.vpx_codec_get_frame(this.decoder, iter);
 
 	        if (img) {
-	            return img;
+	            var offsets = img.planes_off;
+
+	            var imgData = img.img_data;
+
+	            var videoFormat = this.videoFormat;
+	            /*
+	 *  * foundImage = 1;
+	                    ogvjs_callback_frame(image->planes[0], image->stride[0],
+								 image->planes[1], image->stride[1],
+								 image->planes[2], image->stride[2],
+								 image->w, image->d_h,
+								 image->w >> 1, image->d_h >> 1); // @todo pixel format
+		}
+		return foundImage;
+	 */
+	 
+	            this.frameBuffer = {
+	                // @fixme what to do about the crop coordinates if resolution changes? can this happen in webm land? what about if ogv gets a new steam?
+	                format: {
+	                    width: img.d_w + 2, // this is wierd, ogv is cropping it at the wrong spot and making a green line
+	                    height: img.d_h,
+	                    chromaWidth: img.d_w >> 1,
+	                    chromaHeight: img.d_h >> 1,
+	                    cropLeft: videoFormat.cropLeft,
+	                    cropTop: videoFormat.cropTop,
+	                    cropWidth: videoFormat.cropWidth,
+	                    cropHeight: videoFormat.cropHeight,
+	                    displayWidth: videoFormat.displayWidth,
+	                    displayHeight: videoFormat.displayHeight
+	                },
+	                y: {
+	                    bytes: imgData.subarray(offsets[0], offsets[1]),
+	                    stride: img.stride[0]
+	                },
+	                u: {
+	                    bytes: imgData.subarray(offsets[1], offsets[2]),
+	                    stride: img.stride[1]
+	                },
+	                v: {
+	                    bytes: imgData.subarray(offsets[2]),
+	                    stride: img.stride[2]
+	                }
+	            };
+
 	        }
 
+	        var delta = (getTimestamp() - start);
+	        this.cpuTime += delta;
+	        callback(1);
 	    }
 
+	    close() {
+
+	    }
 	}
 
-	if(window){
-	    window.JsVpx = JsVpx;
+
+
+	if (typeof window !== 'undefined') {
+	    window.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
+	} else if (typeof self !== 'undefined') {
+	    self.OGVDecoderVideoVP8 = OGVDecoderVideoVP8;
 	}
-	module.exports = JsVpx;
+
+	module.exports = OGVDecoderVideoVP8;
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -20417,7 +20623,7 @@
 	var ifaces = [
 	    {
 	        name: "jsvp8",
-	        iface : __webpack_require__(9)
+	        iface : __webpack_require__(10)
 	    }
 	];
 
@@ -20521,13 +20727,13 @@
 	};
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var VP8D_COMP = __webpack_require__(10);
-	var onyxd_if = __webpack_require__(17);
+	var VP8D_COMP = __webpack_require__(11);
+	var onyxd_if = __webpack_require__(18);
 	var vp8dx_receive_compressed_data = onyxd_if.vp8dx_receive_compressed_data;
 
 
@@ -20668,22 +20874,22 @@
 	module.exports = vpx_codec_vp8_js;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var VP8_COMMON = __webpack_require__(11);
+	var VP8_COMMON = __webpack_require__(12);
 
-	var dboolhuff = __webpack_require__(12);
+	var dboolhuff = __webpack_require__(13);
 	var BoolDecoder = dboolhuff.BOOL_DECODER;
 
 
-	var blockd = __webpack_require__(14);
+	var blockd = __webpack_require__(15);
 	var MACROBLOCKD = blockd.MACROBLOCKD;
 	var FRAGMENT_DATA = blockd.FRAGMENT_DATA;
 	var mb_info = blockd.MODE_INFO;
 
-	var vpx_image = __webpack_require__(16);
+	var vpx_image = __webpack_require__(17);
 	var vpx_image_t = vpx_image.vpx_image_t;
 
 
@@ -20883,7 +21089,7 @@
 	module.exports = VP8D_COMP;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -21029,12 +21235,12 @@
 	module.exports = VP8_COMMON;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bitreader = __webpack_require__(13);
+	var bitreader = __webpack_require__(14);
 	var vpx_read = bitreader.vpx_read;
 	var vpx_read_bit = bitreader.vpx_read_bit;
 
@@ -21131,7 +21337,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -21197,11 +21403,11 @@
 	module.exports.vpx_read_literal = vpx_read_literal;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var MotionVector = __webpack_require__(15);
+	var MotionVector = __webpack_require__(16);
 
 	//left_context_index
 	var vp8_block2left =
@@ -21312,7 +21518,7 @@
 	module.exports.MODE_INFO = MODE_INFO;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -21337,7 +21543,7 @@
 	module.exports = MotionVector;
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -21571,6 +21777,7 @@
 	        //img.img_data = new Uint8ClampedArray(size);
 	        img.img_data = new Uint8Array(size);
 	        img.img_data.data_32 = new Uint32Array(img.img_data.buffer);
+	        img.img_data.data_16 = new Uint16Array(img.img_data.buffer);
 	        img.img_data_owner = 1;
 	    }
 
@@ -21599,12 +21806,12 @@
 	module.exports.vpx_image_t = vpx_image_t;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var decodeframe = __webpack_require__(18);
+	var decodeframe = __webpack_require__(19);
 	var vp8_decode_frame = decodeframe.vp8_decode_frame;
 
 	var CURRENT_FRAME = 0;
@@ -21719,30 +21926,30 @@
 	};
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var vp8_loopfilter = __webpack_require__(19);
+	var vp8_loopfilter = __webpack_require__(20);
 	var vp8_loop_filter_row_simple = vp8_loopfilter.vp8_loop_filter_row_simple;
 	var vp8_loop_filter_row_normal = vp8_loopfilter.vp8_loop_filter_row_normal;
 
-	var detokenize = __webpack_require__(21);
+	var detokenize = __webpack_require__(22);
 	var decode_mb_tokens = detokenize.decode_mb_tokens;
 	var vp8_reset_mb_tokens_context = detokenize.vp8_reset_mb_tokens_context;
 
-	var bitreader = __webpack_require__(13);
+	var bitreader = __webpack_require__(14);
 	var vpx_read = bitreader.vpx_read;
 	var vpx_read_bit = bitreader.vpx_read_bit;
 
-	var entropymv = __webpack_require__(23);
+	var entropymv = __webpack_require__(24);
 	var vp8_default_mv_context = entropymv.vp8_default_mv_context;
 
 
-	var entropy = __webpack_require__(24);
+	var entropy = __webpack_require__(25);
 	var vp8_default_coef_probs = entropy.vp8_default_coef_probs;
 
-	var quant_common = __webpack_require__(26);
+	var quant_common = __webpack_require__(27);
 	var vp8_dc_quant = quant_common.vp8_dc_quant;
 	var vp8_dc2quant = quant_common.vp8_dc2quant;
 	var vp8_dc_uv_quant = quant_common.vp8_dc_uv_quant;
@@ -21750,31 +21957,31 @@
 	var vp8_ac2quant = quant_common.vp8_ac2quant;
 	var vp8_ac_uv_quant = quant_common.vp8_ac_uv_quant;
 
-	var reconinter = __webpack_require__(27);
+	var reconinter = __webpack_require__(28);
 	var vp8_build_inter_predictors_mb = reconinter.vp8_build_inter_predictors_mb;
 
-	var reconintra = __webpack_require__(30);
+	var reconintra = __webpack_require__(31);
 	var predict_intra_chroma = reconintra.predict_intra_chroma;
 	var predict_intra_luma = reconintra.predict_intra_luma;
 
-	var dboolhuff = __webpack_require__(12);
+	var dboolhuff = __webpack_require__(13);
 	var vp8dx_start_decode = dboolhuff.vp8dx_start_decode;
 
-	var decodemv = __webpack_require__(32);
+	var decodemv = __webpack_require__(33);
 	var vp8_decode_mode_mvs = decodemv.vp8_decode_mode_mvs;
 
-	var entropymode = __webpack_require__(36);
+	var entropymode = __webpack_require__(37);
 	var vp8_init_mbmode_probs = entropymode.vp8_init_mbmode_probs;
 
-	var vpx_image = __webpack_require__(16);
+	var vpx_image = __webpack_require__(17);
 	var vpx_img_set_rect = vpx_image.vpx_img_set_rect;
 	var img_alloc_helper = vpx_image.img_alloc_helper;
 
-	var filter = __webpack_require__(28);
+	var filter = __webpack_require__(29);
 	var vp8_sub_pel_filters = filter.vp8_sub_pel_filters;
 	var vp8_bilinear_filters = filter.vp8_bilinear_filters;
 
-	var c_utils = __webpack_require__(22);
+	var c_utils = __webpack_require__(23);
 	var copy_entropy_values = c_utils.copy_entropy_values;
 	var memset = c_utils.memset;
 	var memset_32 = c_utils.memset_32;
@@ -22686,12 +22893,12 @@
 	module.exports.vp8_decode_frame = vp8_decode_frame;
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var loopfilter_filters = __webpack_require__(20);
+	var loopfilter_filters = __webpack_require__(21);
 	var vp8_filter = loopfilter_filters.vp8_filter;
 	var vp8_loop_filter_bhs_c = loopfilter_filters.vp8_loop_filter_bhs_c;
 	var vp8_loop_filter_simple_horizontal_edge_c = loopfilter_filters.vp8_loop_filter_simple_horizontal_edge_c;
@@ -23016,7 +23223,7 @@
 	module.exports.vp8_loop_filter_row_simple = vp8_loop_filter_row_simple;
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -23059,9 +23266,6 @@
 	    a = saturate_int8(a);
 
 
-	    
-
-	    //f1 = ((a + 4 > 127) ? 127 : a + 4) >> 3;
 	    if((a + 4) > 127){
 	        f1 = 15;
 	        f2 = 15;
@@ -23071,16 +23275,12 @@
 	    }
 	    
 
-	    
-
 	    p0 = saturate_uint8(p0 + f2);
 	    q0 = saturate_uint8(q0 - f1);
 
 	    if (!use_outer_taps)
 	    {
-	        /* This handles the case of subblock_filter()
-	         * (from the bitstream guide.
-	         */
+
 	        a = (f1 + 1) >> 1;
 	        p1 = saturate_uint8(p1 + a);
 	        q1 = saturate_uint8(q1 - a);
@@ -23090,8 +23290,56 @@
 	    pixels[pixels_off - stride] = p0;
 	    pixels[pixels_off] = q0;
 	    pixels[pixels_off + stride] = q1;
-
 	}
+
+	function vp8_filter_2(pixels, pixels_off, use_outer_taps) {
+	    //console.warn(pixels_off);
+	    var pixels_16 = pixels.data_16[(pixels_off - 2)/2];
+	    var p1 = pixels_16 & 0xFF;
+	    var p0 = (pixels_16 >> 8 )& 0xFF;
+	    
+	    pixels_16 = pixels.data_16[(pixels_off)/2];
+	    var q0 = pixels_16 & 0xFF;
+	    var q1 = (pixels_16 >> 8 )& 0xFF;
+
+	    var a = 0;
+	    var f1 = 0;
+	    var f2 = 0;
+
+	    a = 3 * (q0 - p0);
+
+	    if (use_outer_taps)
+	        a += saturate_int8(p1 - q1);
+
+	    a = saturate_int8(a);
+
+
+	    if((a + 4) > 127){
+	        f1 = 15;
+	        f2 = 15;
+	    }else{
+	        f1 = (a + 4) >> 3;
+	        f2 = (a + 3) >> 3;
+	    }
+	    
+
+	    p0 = saturate_uint8(p0 + f2);
+	    q0 = saturate_uint8(q0 - f1);
+
+	    if (!use_outer_taps)
+	    {
+
+	        a = (f1 + 1) >> 1;
+	        p1 = saturate_uint8(p1 + a);
+	        q1 = saturate_uint8(q1 - a);
+	    }
+
+	    pixels[pixels_off - 2] = p1;
+	    pixels[pixels_off - 1] = p0;
+	    pixels[pixels_off] = q0;
+	    pixels[pixels_off + 1] = q1;
+	}
+
 
 	//vp8_loop_filter_simple_bh
 	function vp8_loop_filter_bhs_c(y, y_ptr, y_stride, blimit) {
@@ -23177,7 +23425,7 @@
 	    for (i = 0; i < length; i++) {
 	        if (normal_threshold(src, src_off, 1, edge_limit, interior_limit)) {
 	            if (high_edge_variance(src, src_off, 1, hev_threshold))
-	                vp8_filter(src, src_off, 1, 1);
+	                vp8_filter(src, src_off, 1 , 1);
 	            else
 	                filter_mb_edge(src, src_off, 1);
 	        }
@@ -23187,9 +23435,7 @@
 	}
 
 
-	function normal_threshold(pixels, pixels_off, stride, edge_limit, interior_limit) {
-	    var E = edge_limit;
-	    var I = interior_limit;
+	function normal_threshold(pixels, pixels_off, stride, E, I) {
 
 	    if (simple_threshold(pixels, pixels_off, stride, 2 * E + I) === 0)
 	        return 0;
@@ -23232,6 +23478,7 @@
 	//vp8_mbfilter
 	function filter_mb_edge(pixels, pixels_off, stride) {
 	//var p3 = pixels[pixels_off -4*stride];
+
 	    var stride2 = stride << 1;
 	    var stride3 = 3 * stride;
 
@@ -23331,20 +23578,20 @@
 	module.exports.high_edge_variance = high_edge_variance;
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var blockd = __webpack_require__(14);
+	var blockd = __webpack_require__(15);
 	var vp8_block2left = blockd.vp8_block2left;
 	var vp8_block2above = blockd.vp8_block2above;
 
-	var bitreader = __webpack_require__(13);
+	var bitreader = __webpack_require__(14);
 	var vpx_read = bitreader.vpx_read;
 	var vpx_read_bit = bitreader.vpx_read_bit;
 
-	var c_utils = __webpack_require__(22);
+	var c_utils = __webpack_require__(23);
 	var memset = c_utils.memset;
 
 	var B_PRED = 4;
@@ -23748,7 +23995,7 @@
 	module.exports.vp8_reset_mb_tokens_context = vp8_reset_mb_tokens_context;
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -23834,7 +24081,7 @@
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -23884,11 +24131,11 @@
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var default_coef_probs = __webpack_require__(25);
+	var default_coef_probs = __webpack_require__(26);
 	var default_coef_probs_32 = default_coef_probs.data_32;
 
 
@@ -23915,7 +24162,7 @@
 	};
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -23928,7 +24175,7 @@
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -24092,22 +24339,22 @@
 	module.exports.vp8_ac_uv_quant = vp8_ac_uv_quant;
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var MotionVector = __webpack_require__(15);
+	var MotionVector = __webpack_require__(16);
 
-	var filter = __webpack_require__(28);
+	var filter = __webpack_require__(29);
 	var filter_block2d = filter.filter_block2d;
 
 	var SPLITMV = 9;
 
-	var idctllm = __webpack_require__(29);
+	var idctllm = __webpack_require__(30);
 	var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
 	var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
-	var c_utils = __webpack_require__(22);
+	var c_utils = __webpack_require__(23);
 	var memset = c_utils.memset;
 	var memcpy = c_utils.memcpy;
 
@@ -24534,6 +24781,7 @@
 	function vp8_build_inter_predictors_mb(ctx,
 	        img, coeffs, coeffs_off, mbi, mb_col, mb_row) {
 
+	        
 	    var y, u, v;
 	    var y = u = v = img.y;
 	    var y_off = img.y_off;
@@ -24574,7 +24822,7 @@
 	module.exports.vp8_build_inter_predictors_mb = vp8_build_inter_predictors_mb;
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -24957,7 +25205,7 @@
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25289,12 +25537,12 @@
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var reconintra4x4 = __webpack_require__(31);
+	var reconintra4x4 = __webpack_require__(32);
 	var intra_prediction_down_copy = reconintra4x4.intra_prediction_down_copy;
 
 	var DC_PRED = 0;
@@ -25317,13 +25565,14 @@
 	var B_HD_PRED = 8;
 	var B_HU_PRED = 9;
 
-	var idctllm = __webpack_require__(29);
+	var idctllm = __webpack_require__(30);
 	var vp8_short_inv_walsh4x4_c = idctllm.vp8_short_inv_walsh4x4_c;
 	var vp8_short_idct4x4llm_c = idctllm.vp8_short_idct4x4llm_c;
 
 	function CLAMP_255(x) {
 	    return Math.min(Math.max(x, 0), 255);
 	}
+
 
 	function predict_tm_16x16(predict, predict_off, stride){
 	    predict_tm_nxn(predict, predict_off, stride, 16);
@@ -25372,8 +25621,10 @@
 	        coeffs_off) {
 	    var i = 0;
 
+
 	    switch (mbi.mbmi.uv_mode)
 	    {
+	        
 	        case DC_PRED:
 	            
 	            //line84
@@ -25960,7 +26211,7 @@
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -25997,23 +26248,23 @@
 	module.exports.intra_prediction_down_copy = intra_prediction_down_copy;
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var findenearmv = __webpack_require__(33);
+	var findenearmv = __webpack_require__(34);
 	var left_block_mode = findenearmv.left_block_mode;
 	var above_block_mode = findenearmv.above_block_mode;
 
-	var MotionVector = __webpack_require__(15);
-	var vp8_entropymodedata = __webpack_require__(34);
+	var MotionVector = __webpack_require__(16);
+	var vp8_entropymodedata = __webpack_require__(35);
 
 	var vp8_kf_bmode_prob = vp8_entropymodedata.vp8_kf_bmode_prob;
 
 
-	var vp8_coef_update_probs = __webpack_require__(35);
+	var vp8_coef_update_probs = __webpack_require__(36);
 
-	var entropymode = __webpack_require__(36);
+	var entropymode = __webpack_require__(37);
 	var vp8_bmode_tree = entropymode.vp8_bmode_tree;
 	var vp8_kf_ymode_tree = entropymode.vp8_kf_ymode_tree;
 	var vp8_uv_mode_tree = entropymode.vp8_uv_mode_tree;
@@ -26030,16 +26281,16 @@
 	var vp8_ymode_tree = entropymode.vp8_ymode_tree;
 	var vp8_uv_mode_tree = entropymode.vp8_uv_mode_tree;
 
-	var vp8_mode_contexts = __webpack_require__(37);
+	var vp8_mode_contexts = __webpack_require__(38);
 
-	var bitreader = __webpack_require__(13);
+	var bitreader = __webpack_require__(14);
 	var vpx_read = bitreader.vpx_read;
 	var vpx_read_bit = bitreader.vpx_read_bit;
 
 
-	var vp8_treed_read = __webpack_require__(38);
+	var vp8_treed_read = __webpack_require__(39);
 
-	var entropymv = __webpack_require__(23);
+	var entropymv = __webpack_require__(24);
 	var vp8_mv_update_probs = entropymv.vp8_mv_update_probs;
 
 	var DC_PRED = 0;
@@ -26416,7 +26667,7 @@
 
 	        var x = 0, y = 0, w = 0, h = 0, b = 0;
 
-	        mi[this_off].mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
+	        mbmi.ref_frame = vpx_read(bool, hdr.prob_last)
 	                ? 2 + vpx_read(bool, hdr.prob_gf)
 	                : 1;
 
@@ -26821,11 +27072,11 @@
 	module.exports.vp8_decode_mode_mvs = vp8_decode_mode_mvs;
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var MotionVector = __webpack_require__(15);
+	var MotionVector = __webpack_require__(16);
 
 	var DC_PRED = 0;
 	var V_PRED = 1;
@@ -26898,7 +27149,7 @@
 	module.exports.above_block_mode = above_block_mode;
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -27014,7 +27265,7 @@
 	module.exports.vp8_ymode_prob = vp8_ymode_prob;
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -27132,7 +27383,7 @@
 	module.exports = vp8_coef_update_probs;
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -27305,7 +27556,7 @@
 	module.exports.vp8_init_mbmode_probs = vp8_init_mbmode_probs;
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -27331,12 +27582,12 @@
 	module.exports = vp8_mode_contexts;
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bitreader = __webpack_require__(13);
+	var bitreader = __webpack_require__(14);
 	var vpx_read = bitreader.vpx_read;
 
 
@@ -27356,7 +27607,7 @@
 	module.exports = vp8_treed_read;
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -27383,75 +27634,6 @@
 
 	module.exports = {};
 	module.exports.vpx_codec_ctx_t = vpx_codec_ctx; //vpx_codec_ctx_t
-
-/***/ },
-/* 40 */
-/***/ function(module, exports) {
-
-	module.exports = [
-	    'vp80-00-comprehensive-001.ivf',
-	    'vp80-00-comprehensive-002.ivf',
-	    'vp80-00-comprehensive-003.ivf',
-	    'vp80-00-comprehensive-004.ivf',
-	    'vp80-00-comprehensive-005.ivf',
-	    'vp80-00-comprehensive-006.ivf',
-	    'vp80-00-comprehensive-007.ivf',
-	    'vp80-00-comprehensive-008.ivf',
-	    'vp80-00-comprehensive-009.ivf',
-	    'vp80-00-comprehensive-010.ivf',
-	    'vp80-00-comprehensive-011.ivf',
-	    'vp80-00-comprehensive-012.ivf',
-	    'vp80-00-comprehensive-013.ivf',
-	    'vp80-00-comprehensive-014.ivf',
-	    'vp80-00-comprehensive-015.ivf',
-	    'vp80-00-comprehensive-016.ivf',
-	    'vp80-00-comprehensive-017.ivf',
-	    'vp80-00-comprehensive-018.ivf',
-	    'vp80-01-intra-1400.ivf',
-	    'vp80-01-intra-1411.ivf',
-	    'vp80-01-intra-1416.ivf',
-	    'vp80-01-intra-1417.ivf',
-	    'vp80-02-inter-1402.ivf',
-	    'vp80-02-inter-1412.ivf',
-	    'vp80-02-inter-1418.ivf',
-	    'vp80-02-inter-1424.ivf',
-	    'vp80-03-segmentation-01.ivf',
-	    'vp80-03-segmentation-02.ivf',
-	    'vp80-03-segmentation-03.ivf',
-	    'vp80-03-segmentation-04.ivf',
-	    'vp80-03-segmentation-1401.ivf',
-	    'vp80-03-segmentation-1403.ivf',
-	    'vp80-03-segmentation-1407.ivf',
-	    'vp80-03-segmentation-1408.ivf',
-	    'vp80-03-segmentation-1409.ivf',
-	    'vp80-03-segmentation-1410.ivf',
-	    'vp80-03-segmentation-1413.ivf',
-	    'vp80-03-segmentation-1414.ivf',
-	    'vp80-03-segmentation-1415.ivf',
-	    'vp80-03-segmentation-1425.ivf',
-	    'vp80-03-segmentation-1426.ivf',
-	    'vp80-03-segmentation-1427.ivf',
-	    'vp80-03-segmentation-1432.ivf',
-	    'vp80-03-segmentation-1435.ivf',
-	    'vp80-03-segmentation-1436.ivf',
-	    'vp80-03-segmentation-1437.ivf',
-	    'vp80-03-segmentation-1441.ivf',
-	    'vp80-03-segmentation-1442.ivf',
-	    'vp80-04-partitions-1404.ivf',
-	    'vp80-04-partitions-1405.ivf',
-	    'vp80-04-partitions-1406.ivf',
-	    'vp80-05-sharpness-1428.ivf',
-	    'vp80-05-sharpness-1429.ivf',
-	    'vp80-05-sharpness-1430.ivf',
-	    'vp80-05-sharpness-1431.ivf',
-	    'vp80-05-sharpness-1433.ivf',
-	    'vp80-05-sharpness-1434.ivf',
-	    'vp80-05-sharpness-1438.ivf',
-	    'vp80-05-sharpness-1439.ivf',
-	    'vp80-05-sharpness-1440.ivf',
-	    'vp80-05-sharpness-1443.ivf'
-	];
-
 
 /***/ }
 /******/ ]);

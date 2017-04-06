@@ -31,6 +31,7 @@ function CLAMP_255(x) {
     return Math.min(Math.max(x, 0), 255);
 }
 
+
 function predict_tm_16x16(predict, predict_off, stride){
     predict_tm_nxn(predict, predict_off, stride, 16);
 }
@@ -78,8 +79,10 @@ function predict_intra_chroma(predict_u,
         coeffs_off) {
     var i = 0;
 
+
     switch (mbi.mbmi.uv_mode)
     {
+        
         case DC_PRED:
             
             //line84

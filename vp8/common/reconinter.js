@@ -437,6 +437,7 @@ function vp8_build_inter16x16_predictors_mb(mbi, full_pixel) {
 function vp8_build_inter_predictors_mb(ctx,
         img, coeffs, coeffs_off, mbi, mb_col, mb_row) {
 
+        
     var y, u, v;
     var y = u = v = img.y;
     var y_off = img.y_off;
