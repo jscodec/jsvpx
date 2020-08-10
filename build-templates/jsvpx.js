@@ -40,7 +40,4 @@ class JsVpx {
 
 }
 
-if(window){
-    window.JsVpx = JsVpx;
-}
 module.exports = JsVpx;
