@@ -38,7 +38,7 @@
     "webpack-closure-compiler": "^2.1.3",
     "benchmark": "^2.1.3",
     "microtime": "2.1.2",
-    "lodash" : "4.17.4"
+    "lodash" : "4.17.19"
   },
   "main": "builds/jsvpx.js",
   "license": "MIT"
