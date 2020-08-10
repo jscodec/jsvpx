@@ -42,7 +42,7 @@ var JsVpx = {
     path: path.join(__dirname, 'builds'),
     filename: 'jsvpx.js',
     library: 'JsVpx',
-    libraryTarget: 'commonjs',
+    libraryTarget: 'commonjs2',
   },
   plugins: [
     new ClosureCompilerPlugin({
