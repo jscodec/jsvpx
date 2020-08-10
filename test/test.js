@@ -113,6 +113,7 @@ function testWrapper(ivfDataFile) {
         
         //vpx_codec_decode
         
+        let md5OutputData = '';
 
         for (var i = 0; i < demuxer.frameCount; i++) {
             var data = new Uint8Array(demuxer.processFrame());
@@ -124,13 +125,7 @@ function testWrapper(ivfDataFile) {
             var deadline;
             
             jsvpx.vpx_codec_decode(decoder, data, data.length, user_priv, deadline);
-            
-            //if ((img = vpx_codec_get_frame(&decoder, &iter)))
-            //++frame_out;
-            //}
-            
             var testImg = jsvpx.vpx_codec_get_frame(decoder, iter);
-            
             if (testImg) {
                 //decoder.img = decoder.priv.temp_pbi.ref_frames[CURRENT_FRAME].img;
 
@@ -178,17 +173,11 @@ function testWrapper(ivfDataFile) {
                 outData += "-" + pad(decoder.priv.temp_pbi.frame_cnt, 4);
                 outData += ".i420";
                 outData += "\n";
-                fs.appendFileSync("./output-vectors/" + basename + ".ivf.md5", outData);
+                md5OutputData += outData;
             }
-
-            //assert.equal(md5Data, outputData);
         }
         var md5Data = fs.readFileSync("vp8-test-vectors/" + basename + ".ivf.md5").toString();
-        var outputData = fs.readFileSync("output-vectors/" + basename + ".ivf.md5").toString();
-        //console.log(outputData);
-        assert.equal(md5Data, outputData);
-
-
+        assert.equal(md5Data, md5OutputData);
     });
 }
 
